@@ -23,13 +23,20 @@ Constants = {
     West: 2,
     East: 0,
   },
+
+  BreakableTiles: [
+    5
+  ]
 };
 
-var Player = function(game, x, y) {
+var Player = function(game, x, y, map, foreground) {
   Phaser.Sprite.call(this, game, x, y, 'blocks', 15);
   this.game.physics.arcade.enable(this);
   this.body.setSize(12, 10);
   this.anchor.set(0.5, 1);
+
+  this.map = map;
+  this.foreground = foreground;
 
   this.disableMovement = false;
   this.facing = Constants.Directions.South;
@@ -117,6 +124,31 @@ Player.prototype.update = function () {
       this.punchBox.revive();
       this.punchBox.x = this.facing === Constants.Directions.West ? -16 : (this.facing === Constants.Directions.East ? 16 : 0);
       this.punchBox.y = this.facing === Constants.Directions.South ? 8 : (this.facing === Constants.Directions.North ? -24 : -8);
+
+      // if the player has punched a particular tile, perform necessary logic
+      var hitTile = null;
+      switch (this.facing) {
+        case Constants.Directions.East:
+          var hitTile = this.map.getTile(~~((this.right + 4) / Constants.TileSize), ~~((this.y - 6) / Constants.TileSize), this.foreground);
+          break;
+        case Constants.Directions.West:
+          var hitTile = this.map.getTile(~~((this.left - 4) / Constants.TileSize), ~~((this.y - 6) / Constants.TileSize), this.foreground);
+          break;
+        case Constants.Directions.South:
+          var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.bottom + 4) / Constants.TileSize), this.foreground);
+          break;
+        case Constants.Directions.North:
+          var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.top + 4) / Constants.TileSize), this.foreground);
+          break;
+      }
+      if (hitTile !== null) {
+        var tileIndex = hitTile.index - 1;
+
+        // break breakable tiles
+        if (Constants.BreakableTiles.indexOf(tileIndex) !== -1) {
+          this.map.removeTile(hitTile.x, hitTile.y, this.foreground);
+        }
+      }
 
       this.game.time.events.add(Constants.PunchTime, function () {
         this.punching = false;
@@ -229,7 +261,7 @@ Gameplay.prototype.create = function() {
 
   this.testWalkEnemy = this.game.add.existing(new WalkEnemy(this.game, 128, 96));
 
-  this.player = this.game.add.existing(new Player(this.game, 64, 96));
+  this.player = this.game.add.existing(new Player(this.game, 64, 96, this.map, this.foreground));
 
   this.setUpGUI();
 };
@@ -298,7 +330,6 @@ Gameplay.prototype.setUpGUI = function() {
   var guiTestText = this.game.add.bitmapText(16, 16, 'font', 'overworld i', 8);
   this.gui.addChild(guiTestText);
   this.areaText = guiTestText;
-  this.areaText.text = '0-0';
 
   this.game.world.bringToTop(this.gui);
 };
