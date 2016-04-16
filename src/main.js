@@ -48,7 +48,7 @@ var Player = function(game, x, y, map, foreground) {
   this.punching = false;
   this.shooting = false;
 
-  this.viewSprite = this.game.add.sprite(0, 0, 'blocks', 4);
+  this.viewSprite = this.game.add.sprite(0, 0, 'blocks', 14);
   this.viewSprite.anchor.set(0.5, 1);
   this.addChild(this.viewSprite);
 
@@ -252,7 +252,7 @@ Gameplay.prototype.create = function() {
   this.map.addTilesetImage('blocks', 'blocks', 16, 16);
   this.background = this.map.createLayer('background');
   this.foreground = this.map.createLayer('foreground');
-  this.map.setCollisionByExclusion([], true, this.foreground, true);
+  this.map.setCollisionByExclusion([8, 4].map(function (i) { return i+1; }), true, this.foreground, true);
   this.foreground.resizeWorld();
 
   this.cameraScrolling = false;
@@ -332,6 +332,31 @@ Gameplay.prototype.setUpGUI = function() {
   this.areaText = guiTestText;
 
   this.game.world.bringToTop(this.gui);
+};
+Gameplay.prototype.toggleSwitchTiles = function (color) {
+  if (color === 'red') {
+    this.map.forEach(function (tile) {
+      if (tile instanceof Phaser.Tile) {
+        if (tile.index === 8 + (1)) {
+          this.map.putTile(13 + (1), tile.x, tile.y, this.foreground);
+        } else if (tile.index === 13 + (1)) {
+          this.map.putTile(8 + (1), tile.x, tile.y, this.foreground);
+        }
+      }
+    }, this, 0, 0, this.map.width, this.map.height, this.foreground);
+  } else if (color === 'blue') {
+    this.map.forEach(function (tile) {
+
+      if (tile instanceof Phaser.Tile) {
+        if (tile.index === 4 + (1)) {
+          this.map.putTile(0 + (1), tile.x, tile.y, this.foreground);
+        } else if (tile.index === 0 + (1)) {
+          this.map.putTile(4 + (1), tile.x, tile.y, this.foreground);
+        }
+      }
+
+    }, this, 0, 0, this.map.width, this.map.height, this.foreground);
+  }
 };
 
 var main = function() {
