@@ -7,6 +7,9 @@ Constants = {
   RoomHeightInTiles: 11,
 
   CameraScrollTime: 650,
+
+  KnockBackSpeed: -150,
+  FlickerTime: 700,
 };
 
 var Player = function(game, x, y) {
@@ -16,6 +19,8 @@ var Player = function(game, x, y) {
   this.game.physics.arcade.enable(this);
   this.body.setSize(12, 10);
   this.anchor.set(0.5);
+
+  this.invincible = false;
 
   this.knockBackDirection = null;
 };
@@ -122,15 +127,22 @@ Gameplay.prototype.create = function() {
 };
 Gameplay.prototype.update = function() {
   this.game.physics.arcade.collide(this.player, this.foreground);
-  this.game.physics.arcade.overlap(this.player, this.testWalkEnemy, function () { console.log('bing'); }, function (player, enemy) {
-    if (player.knockBackDirection !== null) { return; }
+  this.game.physics.arcade.overlap(this.player, this.testWalkEnemy, function () { }, function (player, enemy) {
+    if (player.invincible === true) { return false; }
 
     player.knockBackDirection = new Phaser.Point(enemy.x - player.x, enemy.y - player.y);
     player.knockBackDirection.normalize();
-    player.knockBackDirection.multiply(-150, -150);
+    player.knockBackDirection.multiply(Constants.KnockBackSpeed, Constants.KnockBackSpeed);
     this.game.time.events.add(200, function () {
       player.knockBackDirection = null;
     }, this);
+
+    player.invincible = true;
+    var flickerPlayer = this.game.time.events.loop(100, function () {
+      player.tint = (player.tint === 0xFFFFFF ? 0xFF0000 : 0xFFFFFF);
+    }, this);
+    this.game.time.events.add(Constants.FlickerTime, function () { player.tint = 0xFFFFFF; player.invincible = false; this.game.time.events.remove(flickerPlayer); }, this);
+
     return false;
   }, this);
 
