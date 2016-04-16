@@ -10,6 +10,16 @@ Constants = {
 
   KnockBackSpeed: -150,
   FlickerTime: 700,
+
+  JumpTime: 300, // duration of jump
+  PunchTime: 300, // duration of punch
+
+  Directions: {
+    North: 3,
+    South: 1,
+    West: 2,
+    East: 0,
+  },
 };
 
 var Player = function(game, x, y) {
@@ -19,46 +29,81 @@ var Player = function(game, x, y) {
   this.anchor.set(0.5, 1);
 
   this.disableMovement = false;
+  this.facing = Constants.Directions.South;
 
   this.invincible = false;
   this.knockBackDirection = null;
 
   this.jumping = false;
+  this.punching = false;
 
   this.viewSprite = this.game.add.sprite(0, 0, 'blocks', 4);
   this.viewSprite.anchor.set(0.5, 1);
   this.addChild(this.viewSprite);
+
+  this.punchBox = this.game.add.sprite(0, 0, 'blocks', 1);
+  this.game.physics.arcade.enable(this.punchBox);
+  this.punchBox.anchor.set(0.5);
+  this.punchBox.body.setSize(14, 14);
+  this.addChild(this.punchBox);
+  this.punchBox.kill();
 };
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 Player.prototype.update = function () {
   // directional keyboard movement
   if (this.disableMovement === false && this.knockBackDirection === null) {
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-      this.body.velocity.x = Constants.MoveSpeed;
-      this.body.velocity.y = 0;
-    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-      this.body.velocity.x = -Constants.MoveSpeed;
-      this.body.velocity.y = 0;
-    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-      this.body.velocity.x = 0;
-      this.body.velocity.y = Constants.MoveSpeed;
-    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-      this.body.velocity.x = 0;
-      this.body.velocity.y = -Constants.MoveSpeed;
-    } else {
-      this.body.velocity.set(0);
+    // don't move while punching
+    if (this.punching === false) {
+      if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+        this.body.velocity.x = Constants.MoveSpeed;
+        this.body.velocity.y = 0;
+
+        this.facing = Constants.Directions.East;
+      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+        this.body.velocity.x = -Constants.MoveSpeed;
+        this.body.velocity.y = 0;
+
+        this.facing = Constants.Directions.West;
+      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+        this.body.velocity.x = 0;
+        this.body.velocity.y = Constants.MoveSpeed;
+
+        this.facing = Constants.Directions.South;
+      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+        this.body.velocity.x = 0;
+        this.body.velocity.y = -Constants.MoveSpeed;
+
+        this.facing = Constants.Directions.North;
+      } else {
+        this.body.velocity.set(0);
+      }
     }
 
-    if (this.jumping === false && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+    if (this.jumping === false && this.game.input.keyboard.isDown(Phaser.Keyboard.Q)) {
       this.jumping = true;
 
       var jumpTween = this.game.add.tween(this.viewSprite);
-      jumpTween.to({y: [-24, 0]}, 300, Phaser.Easing.Linear.None);
+      jumpTween.to({y: [-24, 0]}, Constants.JumpTime, Phaser.Easing.Linear.None);
       jumpTween.onComplete.add(function () {
         this.jumping = false;
       }, this);
       jumpTween.start();
+    }
+
+    if (this.punching === false && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+      this.punching = true;
+      this.body.velocity.set(0);
+
+      this.punchBox.revive();
+      this.punchBox.x = this.facing === Constants.Directions.West ? -16 : (this.facing === Constants.Directions.East ? 16 : 0);
+      this.punchBox.y = this.facing === Constants.Directions.South ? 8 : (this.facing === Constants.Directions.North ? -24 : -8);
+
+      this.game.time.events.add(Constants.PunchTime, function () {
+        this.punching = false;
+
+        this.punchBox.kill();
+      }, this);
     }
   } else if (this.knockBackDirection !== null) {
     this.body.velocity.set(this.knockBackDirection.x, this.knockBackDirection.y);
@@ -73,6 +118,8 @@ var WalkEnemy = function(game, x, y) {
   this.game.physics.arcade.enable(this);
   this.body.setSize(12, 10);
   this.anchor.set(0.5);
+
+  this.knockBackDirection = null;
 };
 WalkEnemy.prototype = Object.create(Phaser.Sprite.prototype);
 WalkEnemy.prototype.constructor = WalkEnemy;
