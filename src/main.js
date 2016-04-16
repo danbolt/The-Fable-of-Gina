@@ -1,13 +1,59 @@
 Constants = {
   TileSize: 16,
 
-  MoveSpeed: 50,
+  MoveSpeed: 100,
 
   RoomWidthInTiles: 20,
   RoomHeightInTiles: 11,
 
   CameraScrollTime: 650,
 };
+
+var Player = function(game, x, y) {
+  Phaser.Sprite.call(this, game, x, y, 'blocks', 4);
+
+  this.disableMovement = false;
+  this.game.physics.arcade.enable(this);
+  this.body.setSize(12, 10);
+  this.anchor.set(0.5);
+
+  this.knockBackDirection = null;
+};
+Player.prototype = Object.create(Phaser.Sprite.prototype);
+Player.prototype.constructor = Player;
+Player.prototype.update = function () {
+  if (this.disableMovement === false && this.knockBackDirection === null) {
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+      this.body.velocity.x = Constants.MoveSpeed;
+      this.body.velocity.y = 0;
+    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+      this.body.velocity.x = -Constants.MoveSpeed;
+      this.body.velocity.y = 0;
+    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+      this.body.velocity.x = 0;
+      this.body.velocity.y = Constants.MoveSpeed;
+    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+      this.body.velocity.x = 0;
+      this.body.velocity.y = -Constants.MoveSpeed;
+    } else {
+      this.body.velocity.set(0);
+    }
+  } else if (this.knockBackDirection !== null) {
+    this.body.velocity.set(this.knockBackDirection.x, this.knockBackDirection.y);
+  } else {
+    this.body.velocity.set(0);
+  }
+};
+
+var WalkEnemy = function(game, x, y) {
+  Phaser.Sprite.call(this, game, x, y, 'blocks', 6);
+
+  this.game.physics.arcade.enable(this);
+  this.body.setSize(12, 10);
+  this.anchor.set(0.5);
+};
+WalkEnemy.prototype = Object.create(Phaser.Sprite.prototype);
+WalkEnemy.prototype.constructor = WalkEnemy;
 
 
 // State 
@@ -68,38 +114,25 @@ Gameplay.prototype.create = function() {
   this.cameraBounds = new Phaser.Rectangle(0, 0, this.game.camera.width, this.game.camera.height - (Constants.TileSize * 3));
   this.game.camera.bounds = null;
 
-  this.player = this.game.add.sprite(64, 96, 'blocks', 4);
-  this.player.disableMovement = false;
-  this.game.physics.arcade.enable(this.player);
-  this.player.body.setSize(14, 14);
-  this.player.anchor.set(0.5);
+  this.testWalkEnemy = this.game.add.existing(new WalkEnemy(this.game, 128, 96));
 
-  this.player.update = function () {
-    if (this.disableMovement === false) {
-      if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-        this.body.velocity.x = Constants.MoveSpeed;
-        this.body.velocity.y = 0;
-      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-        this.body.velocity.x = -Constants.MoveSpeed;
-        this.body.velocity.y = 0;
-      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-        this.body.velocity.x = 0;
-        this.body.velocity.y = Constants.MoveSpeed;
-      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-        this.body.velocity.x = 0;
-        this.body.velocity.y = -Constants.MoveSpeed;
-      } else {
-        this.body.velocity.set(0);
-      }
-    } else {
-      this.body.velocity.set(0);
-    }
-  };
+  this.player = this.game.add.existing(new Player(this.game, 64, 96));
 
   this.setUpGUI();
 };
 Gameplay.prototype.update = function() {
   this.game.physics.arcade.collide(this.player, this.foreground);
+  this.game.physics.arcade.overlap(this.player, this.testWalkEnemy, function () { console.log('bing'); }, function (player, enemy) {
+    if (player.knockBackDirection !== null) { return; }
+
+    player.knockBackDirection = new Phaser.Point(enemy.x - player.x, enemy.y - player.y);
+    player.knockBackDirection.normalize();
+    player.knockBackDirection.multiply(-150, -150);
+    this.game.time.events.add(200, function () {
+      player.knockBackDirection = null;
+    }, this);
+    return false;
+  }, this);
 
   // camera scrolling
   this.cameraBounds.x = this.game.camera.x;
@@ -115,6 +148,8 @@ Gameplay.prototype.update = function() {
     cameraTween.onComplete.add(function () {
       this.cameraScrolling = false;
       this.player.disableMovement = false;
+
+      this.areaText.text = ~~(this.player.x / (Constants.RoomWidthInTiles * Constants.TileSize)) + '-' + ~~(this.player.y / (Constants.RoomHeightInTiles * Constants.TileSize));
     }, this);
     cameraTween.start();
   }
@@ -131,6 +166,8 @@ Gameplay.prototype.setUpGUI = function() {
 
   var guiTestText = this.game.add.bitmapText(16, 16, 'font', 'overworld i', 8);
   this.gui.addChild(guiTestText);
+  this.areaText = guiTestText;
+  this.areaText.text = '0-0';
 
   this.game.world.bringToTop(this.gui);
 };
