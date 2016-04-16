@@ -13,20 +13,26 @@ Constants = {
 };
 
 var Player = function(game, x, y) {
-  Phaser.Sprite.call(this, game, x, y, 'blocks', 4);
-
-  this.disableMovement = false;
+  Phaser.Sprite.call(this, game, x, y, 'blocks', 15);
   this.game.physics.arcade.enable(this);
   this.body.setSize(12, 10);
-  this.anchor.set(0.5);
+  this.anchor.set(0.5, 1);
+
+  this.disableMovement = false;
 
   this.invincible = false;
-
   this.knockBackDirection = null;
+
+  this.jumping = false;
+
+  this.viewSprite = this.game.add.sprite(0, 0, 'blocks', 4);
+  this.viewSprite.anchor.set(0.5, 1);
+  this.addChild(this.viewSprite);
 };
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 Player.prototype.update = function () {
+  // directional keyboard movement
   if (this.disableMovement === false && this.knockBackDirection === null) {
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
       this.body.velocity.x = Constants.MoveSpeed;
@@ -42,6 +48,17 @@ Player.prototype.update = function () {
       this.body.velocity.y = -Constants.MoveSpeed;
     } else {
       this.body.velocity.set(0);
+    }
+
+    if (this.jumping === false && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+      this.jumping = true;
+
+      var jumpTween = this.game.add.tween(this.viewSprite);
+      jumpTween.to({y: [-24, 0]}, 300, Phaser.Easing.Linear.None);
+      jumpTween.onComplete.add(function () {
+        this.jumping = false;
+      }, this);
+      jumpTween.start();
     }
   } else if (this.knockBackDirection !== null) {
     this.body.velocity.set(this.knockBackDirection.x, this.knockBackDirection.y);
@@ -80,6 +97,7 @@ Preload.prototype.preload = function() {
 
   this.game.input.keyboard.addKeyCapture(Phaser.Keyboard.DOWN);
   this.game.input.keyboard.addKeyCapture(Phaser.Keyboard.UP);
+  this.game.input.keyboard.addKeyCapture(Phaser.Keyboard.SPACEBAR);
 
   this.game.input.gamepad.start();
 };
@@ -128,7 +146,7 @@ Gameplay.prototype.create = function() {
 Gameplay.prototype.update = function() {
   this.game.physics.arcade.collide(this.player, this.foreground);
   this.game.physics.arcade.overlap(this.player, this.testWalkEnemy, function () { }, function (player, enemy) {
-    if (player.invincible === true) { return false; }
+    if (player.invincible === true || player.jumping === true) { return false; }
 
     player.knockBackDirection = new Phaser.Point(enemy.x - player.x, enemy.y - player.y);
     player.knockBackDirection.normalize();
@@ -139,9 +157,9 @@ Gameplay.prototype.update = function() {
 
     player.invincible = true;
     var flickerPlayer = this.game.time.events.loop(100, function () {
-      player.tint = (player.tint === 0xFFFFFF ? 0xFF0000 : 0xFFFFFF);
+      player.viewSprite.tint = (player.viewSprite.tint === 0xFFFFFF ? 0xFF0000 : 0xFFFFFF);
     }, this);
-    this.game.time.events.add(Constants.FlickerTime, function () { player.tint = 0xFFFFFF; player.invincible = false; this.game.time.events.remove(flickerPlayer); }, this);
+    this.game.time.events.add(Constants.FlickerTime, function () { player.viewSprite.tint = 0xFFFFFF; player.invincible = false; this.game.time.events.remove(flickerPlayer); }, this);
 
     return false;
   }, this);
@@ -160,11 +178,12 @@ Gameplay.prototype.update = function() {
     cameraTween.onComplete.add(function () {
       this.cameraScrolling = false;
       this.player.disableMovement = false;
-
-      this.areaText.text = ~~(this.player.x / (Constants.RoomWidthInTiles * Constants.TileSize)) + '-' + ~~(this.player.y / (Constants.RoomHeightInTiles * Constants.TileSize));
     }, this);
     cameraTween.start();
   }
+};
+Gameplay.prototype.render = function () {
+  this.game.debug.body(this.player);
 };
 Gameplay.prototype.setUpGUI = function() {
   this.gui = this.game.add.group();
