@@ -13,6 +13,9 @@ Constants = {
 
   JumpTime: 300, // duration of jump
   PunchTime: 300, // duration of punch
+  ShootTime: 50, // duration of time to "stall the player" when shooting
+  BulletVelocity: 120,
+  TimeBetweenBullets: 400, // prevent 'spamming' the bullets
 
   Directions: {
     North: 3,
@@ -36,6 +39,7 @@ var Player = function(game, x, y) {
 
   this.jumping = false;
   this.punching = false;
+  this.shooting = false;
 
   this.viewSprite = this.game.add.sprite(0, 0, 'blocks', 4);
   this.viewSprite.anchor.set(0.5, 1);
@@ -47,6 +51,21 @@ var Player = function(game, x, y) {
   this.punchBox.body.setSize(14, 14);
   this.addChild(this.punchBox);
   this.punchBox.kill();
+
+  this.canShoot = true;
+  this.bullets = this.game.add.group();
+  for (var i = 0; i < 3; i++) {
+    var newBullet = this.game.add.sprite(i * 32 + 100, 100, 'blocks', 1);
+    this.game.physics.arcade.enable(newBullet);
+    newBullet.anchor.set(0.5);
+    newBullet.width = 10;
+    newBullet.height = 10;
+
+    this.bullets.addChild(newBullet);
+    this.bullets.addToHash(newBullet);
+
+    newBullet.kill();
+  }
 };
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
@@ -54,7 +73,7 @@ Player.prototype.update = function () {
   // directional keyboard movement
   if (this.disableMovement === false && this.knockBackDirection === null) {
     // don't move while punching
-    if (this.punching === false) {
+    if (this.punching === false && this.shooting === false) {
       if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
         this.body.velocity.x = Constants.MoveSpeed;
         this.body.velocity.y = 0;
@@ -91,7 +110,7 @@ Player.prototype.update = function () {
       jumpTween.start();
     }
 
-    if (this.punching === false && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+    if (this.punching === false && this.game.input.keyboard.isDown(Phaser.Keyboard.W)) {
       this.punching = true;
       this.body.velocity.set(0);
 
@@ -104,6 +123,30 @@ Player.prototype.update = function () {
 
         this.punchBox.kill();
       }, this);
+    }
+
+    if (this.shooting === false && this.canShoot === true && this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
+      var newBullet = this.bullets.getFirstDead();
+      if (newBullet !== null) {
+        this.shooting = true;
+        this.body.velocity.set(0);
+
+        newBullet.revive();
+
+        newBullet.x = this.x + (this.facing === (Constants.Directions.West ? -16 : (this.facing === Constants.Directions.East ? 16 : 0)));
+        newBullet.y = this.y + (this.facing === (Constants.Directions.South ? 8 : (this.facing === Constants.Directions.North ? -24 : -8)));
+        newBullet.body.velocity.x = this.facing === Constants.Directions.West ? -Constants.BulletVelocity : (this.facing === Constants.Directions.East ? Constants.BulletVelocity : 0);
+        newBullet.body.velocity.y = this.facing === Constants.Directions.South ? Constants.BulletVelocity : (this.facing === Constants.Directions.North ? -Constants.BulletVelocity : 0);
+
+        this.game.time.events.add(Constants.ShootTime, function () {
+          this.shooting = false;
+        }, this);
+
+        this.canShoot = false;
+        this.game.time.events.add(Constants.TimeBetweenBullets, function () {
+          this.canShoot = true;
+        }, this);
+      }
     }
   } else if (this.knockBackDirection !== null) {
     this.body.velocity.set(this.knockBackDirection.x, this.knockBackDirection.y);
@@ -217,6 +260,7 @@ Gameplay.prototype.update = function() {
   if (this.cameraScrolling === false && Phaser.Rectangle.contains(this.cameraBounds, this.player.x, this.player.y) === false) {
     this.cameraScrolling = true;
     this.player.disableMovement = true;
+    this.player.bullets.forEach(function (b) { b.kill(); }, this);
 
     var calculatedCameraX = ~~(this.player.x / (Constants.RoomWidthInTiles * Constants.TileSize)) * (Constants.RoomWidthInTiles * Constants.TileSize);
     var calculatedCameraY = ~~(this.player.y / (Constants.RoomHeightInTiles * Constants.TileSize)) * (Constants.RoomHeightInTiles * Constants.TileSize);
@@ -227,10 +271,19 @@ Gameplay.prototype.update = function() {
       this.player.disableMovement = false;
     }, this);
     cameraTween.start();
+  } else {
+    this.player.bullets.forEach(function (b) {
+      if (Phaser.Rectangle.contains(this.cameraBounds, b.x, b.y) === false) {
+        b.kill();
+      }
+    }, this);
   }
 };
+// remove/delete this function in final version
 Gameplay.prototype.render = function () {
-  this.game.debug.body(this.player);
+  //this.game.debug.body(this.player);
+
+  //this.player.bullets.forEach(function(b) { this.game.debug.body(b); }, this);
 };
 Gameplay.prototype.setUpGUI = function() {
   this.gui = this.game.add.group();
