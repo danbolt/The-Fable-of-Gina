@@ -39,8 +39,23 @@
                  "type":"",
                  "visible":true,
                  "width":16,
-                 "x":128,
-                 "y":80
+                 "x":176,
+                 "y":96
+                }, 
+                {
+                 "height":16,
+                 "id":2,
+                 "name":"spike",
+                 "properties":
+                    {
+
+                    },
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":16,
+                 "x":176,
+                 "y":112
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -49,7 +64,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":2,
+ "nextobjectid":3,
  "orientation":"orthogonal",
  "properties":
     {
