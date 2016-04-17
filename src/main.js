@@ -70,20 +70,22 @@ Gameplay.prototype.create = function() {
   this.cameraBounds = new Phaser.Rectangle(0, 0, this.game.camera.width, this.game.camera.height - (Constants.TileSize * 3));
   this.game.camera.bounds = null;
 
+  this.hostiles = [];
+  this.enemies = [];
+  this.toggleSwitches = [];
+
   this.walkEnemyPool = this.game.add.group();
   for (var i = 0; i < 7; i++) {
     var newWalker = new WalkEnemy(this.game, 0, 0);
     this.walkEnemyPool.addChild(newWalker);
+    this.hostiles.push(newWalker);
     newWalker.kill();
   };
-
-  this.enemies = [];
-  this.toggleSwitches = [];
 
   this.map.objects.environment.forEach(function (envObject) {
     if (envObject.name === 'spike') {
       var newSpikes = this.game.add.existing(new Spikes(this.game, envObject.x, envObject.y));
-      this.enemies.push(newSpikes);
+      this.hostiles.push(newSpikes);
     } else if (envObject.name === 'player') {
       this.player = this.game.add.existing(new Player(this.game, envObject.x, envObject.y, this.map, this.foreground));
     } else if (envObject.name === 'red_switch') {
@@ -115,7 +117,7 @@ Gameplay.prototype.update = function() {
   this.game.physics.arcade.collide(this.player, this.foreground);
 
   // player/foe collision detection
-  this.game.physics.arcade.overlap(this.player, this.enemies, function () { }, function (player, enemy) {
+  this.game.physics.arcade.overlap(this.player, this.hostiles, function () { }, function (player, enemy) {
     if (player.invincible === true || player.jumping === true) { return false; }
 
     player.knockBackDirection = new Phaser.Point(enemy.x - player.x, enemy.y - player.y);
@@ -198,8 +200,8 @@ Gameplay.prototype.update = function() {
           enemyData.y > calculatedCameraY && enemyData.y < calculatedCameraY + this.cameraBounds.height) {
         if (enemyData.name === 'walker') {
           var newWalker = this.walkEnemyPool.getFirstDead();
-          newWalker.x = enemyData.x;
-          newWalker.y = enemyData.y;
+          newWalker.x = enemyData.x + 8;
+          newWalker.y = enemyData.y + 8;
           newWalker.revive();
           this.enemies.push(newWalker);
         }
