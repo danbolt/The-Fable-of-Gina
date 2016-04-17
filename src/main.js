@@ -99,7 +99,7 @@ Gameplay.prototype.update = function() {
     player.knockBackDirection = new Phaser.Point(enemy.x - player.x, enemy.y - player.y);
     player.knockBackDirection.normalize();
     player.knockBackDirection.multiply(Constants.KnockBackSpeed, Constants.KnockBackSpeed);
-    this.game.time.events.add(200, function () {
+    this.game.time.events.add(401, function () {
       player.knockBackDirection = null;
     }, this);
 
