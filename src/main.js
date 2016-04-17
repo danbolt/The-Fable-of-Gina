@@ -256,7 +256,7 @@ Gameplay.prototype.update = function() {
 
     Globals.PlayerHealth--;
     this.gui.hearts.children.forEach(function (h) {
-      h.renderable = this.gui.hearts.children.indexOf(h) <= (Globals.PlayerHealth - 1);
+      h.frame = this.gui.hearts.children.indexOf(h) <= (Globals.PlayerHealth - 1) ? 99 : 100;
     }, this);
 
     if (Globals.PlayerHealth > 0) {
@@ -415,7 +415,7 @@ Gameplay.prototype.setUpGUI = function() {
   hearts.x = 16;
   hearts.y = 16;
   for (var i = 0; i < Globals.PlayerMaxHealth; i++) {
-    var heartContainer = this.game.add.sprite(24 * i, 0, 'blocks', 1);
+    var heartContainer = this.game.add.sprite(21 * i, 0, 'blocks', 99);
     hearts.addChild(heartContainer);
   }
   this.gui.hearts = hearts;
