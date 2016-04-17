@@ -1,59 +1,3 @@
-Constants = {
-  TileSize: 16,
-
-  MoveSpeed: 100,
-
-  RoomWidthInTiles: 20,
-  RoomHeightInTiles: 11,
-
-  CameraScrollTime: 650,
-
-  KnockBackSpeed: -150,
-  FlickerTime: 700,
-
-  JumpTime: 300, // duration of jump
-  PunchTime: 300, // duration of punch
-  ShootTime: 50, // duration of time to "stall the player" when shooting
-  BulletVelocity: 120,
-  TimeBetweenBullets: 400, // prevent 'spamming' the bullets
-
-  // enumerative type
-  Directions: {
-    North: 3,
-    South: 1,
-    West: 2,
-    East: 0,
-  },
-
-  // indicies of tiles that can be broken by the hammer
-  BreakableTiles: [
-    5
-  ]
-};
-
-var WalkEnemy = function(game, x, y) {
-  Phaser.Sprite.call(this, game, x, y, 'blocks', 6);
-
-  this.game.physics.arcade.enable(this);
-  this.body.setSize(12, 10);
-  this.anchor.set(0.5);
-
-  this.knockBackDirection = null;
-};
-WalkEnemy.prototype = Object.create(Phaser.Sprite.prototype);
-WalkEnemy.prototype.constructor = WalkEnemy;
-
-var Spikes = function(game, x, y) {
-  Phaser.Sprite.call(this, game, x + 8, y + 8, 'blocks', 10);
-  this.game.physics.arcade.enable(this);
-  this.body.setSize(16, 16);
-  this.anchor.set(0.5)
-
-  this.invincible = true;
-};
-Spikes.prototype = Object.create(Phaser.Sprite.prototype);
-Spikes.prototype.constructor = Spikes;
-
 var ToggleSwitch = function(game, x, y, color, toggleCallback) {
   Phaser.Sprite.call(this, game, x + 8, y + 8, 'blocks', color === 'red' ? 1 : 7);
 
@@ -133,17 +77,19 @@ Gameplay.prototype.create = function() {
       this.enemies.push(newSpikes);
     }
   }, this);
-  this.enemies.push(this.game.add.existing(new WalkEnemy(this.game, 48, 96)));
+  this.enemies.push(this.game.add.existing(new WalkEnemy(this.game, 48, 148)));
 
   this.toggleSwitches = [];
   var testToggleSwitch = this.game.add.existing(new ToggleSwitch(this.game, 96, 96, 'blue', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
   this.toggleSwitches.push(testToggleSwitch);
 
-  this.player = this.game.add.existing(new Player(this.game, 64, 96, this.map, this.foreground));
+  this.player = this.game.add.existing(new Player(this.game, 128, 96, this.map, this.foreground));
 
   this.setUpGUI();
 };
 Gameplay.prototype.update = function() {
+  // solid-object collisions
+  this.game.physics.arcade.collide(this.enemies, this.foreground);
   this.game.physics.arcade.collide(this.player, this.foreground);
 
   // player/foe collision detection
