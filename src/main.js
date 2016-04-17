@@ -43,12 +43,23 @@ var WalkEnemy = function(game, x, y) {
 WalkEnemy.prototype = Object.create(Phaser.Sprite.prototype);
 WalkEnemy.prototype.constructor = WalkEnemy;
 
+var Spikes = function(game, x, y) {
+  Phaser.Sprite.call(this, game, x + 8, y + 8, 'blocks', 10);
+  this.game.physics.arcade.enable(this);
+  this.body.setSize(16, 16);
+  this.anchor.set(0.5)
+
+  this.invincible = true;
+};
+Spikes.prototype = Object.create(Phaser.Sprite.prototype);
+Spikes.prototype.constructor = Spikes;
+
 var ToggleSwitch = function(game, x, y, color, toggleCallback) {
-  Phaser.Sprite.call(this, game, x, y, 'blocks', color === 'red' ? 1 : 7);
+  Phaser.Sprite.call(this, game, x + 8, y + 8, 'blocks', color === 'red' ? 1 : 7);
 
   this.game.physics.arcade.enable(this);
   this.body.setSize(16, 16);
-  this.anchor.set(0.5);
+  this.anchor.set(0.5, 0.5)
 
   this.toggleCallback = toggleCallback;
   this.color = color;
@@ -115,7 +126,14 @@ Gameplay.prototype.create = function() {
   this.cameraBounds = new Phaser.Rectangle(0, 0, this.game.camera.width, this.game.camera.height - (Constants.TileSize * 3));
   this.game.camera.bounds = null;
 
-  this.testWalkEnemy = this.game.add.existing(new WalkEnemy(this.game, 16, 96));
+  this.enemies = [];
+  this.map.objects.environment.forEach(function (envObject) {
+    if (envObject.name === 'spike') {
+      var newSpikes = this.game.add.existing(new Spikes(this.game, envObject.x, envObject.y));
+      this.enemies.push(newSpikes);
+    }
+  }, this);
+  this.enemies.push(this.game.add.existing(new WalkEnemy(this.game, 48, 96)));
 
   this.toggleSwitches = [];
   var testToggleSwitch = this.game.add.existing(new ToggleSwitch(this.game, 96, 96, 'blue', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
@@ -129,7 +147,7 @@ Gameplay.prototype.update = function() {
   this.game.physics.arcade.collide(this.player, this.foreground);
 
   // player/foe collision detection
-  this.game.physics.arcade.overlap(this.player, this.testWalkEnemy, function () { }, function (player, enemy) {
+  this.game.physics.arcade.overlap(this.player, this.enemies, function () { }, function (player, enemy) {
     if (player.invincible === true || player.jumping === true) { return false; }
 
     player.knockBackDirection = new Phaser.Point(enemy.x - player.x, enemy.y - player.y);
@@ -144,6 +162,22 @@ Gameplay.prototype.update = function() {
       player.viewSprite.tint = (player.viewSprite.tint === 0xFFFFFF ? 0xFF0000 : 0xFFFFFF);
     }, this);
     this.game.time.events.add(Constants.FlickerTime, function () { player.viewSprite.tint = 0xFFFFFF; player.invincible = false; this.game.time.events.remove(flickerPlayer); }, this);
+
+    return false;
+  }, this);
+
+  // bullet/enemy collision detection
+  this.game.physics.arcade.overlap(this.player.bullets, this.enemies, function () {}, function (enemy, bullet) {
+    bullet.kill();
+
+    if (!(enemy.invincible)) { enemy.kill(); }
+
+    return false;
+  }, this);
+
+  // punch/enemy collision detection
+  this.game.physics.arcade.overlap(this.player.punchBox, this.enemies, function () {}, function (pBox, enemy) {
+    if (!(enemy.invincible)) { enemy.kill(); }
 
     return false;
   }, this);
