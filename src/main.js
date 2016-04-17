@@ -185,7 +185,7 @@ Gameplay.prototype.update = function() {
       // player has died! boo
       this.player.dying = true;
       this.player.disableMovement = true;
-      this.player.viewSprite.animations.play('weak_die');
+      this.player.viewSprite.animations.play(this.player.currentForm + '_die');
 
       this.game.time.events.add(3000, function () {
         this.game.state.start('TitleScreen');
