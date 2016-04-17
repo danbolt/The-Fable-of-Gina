@@ -83,7 +83,7 @@ Gameplay.prototype.create = function() {
   this.map.addTilesetImage('blocks', 'blocks', 16, 16);
   this.background = this.map.createLayer('background');
   this.foreground = this.map.createLayer('foreground');
-  this.map.setCollisionByExclusion([8, 4].map(function (i) { return i+1; }), true, this.foreground, true);
+  this.map.setCollisionByExclusion([8, 6].map(function (i) { return i+1; }), true, this.foreground, true);
   this.foreground.resizeWorld();
 
   this.cameraScrolling = false;
@@ -215,6 +215,7 @@ Gameplay.prototype.update = function() {
     bullet.kill();
 
     toggleSwitch.toggleCallback(toggleSwitch.color);
+    toggleSwitch.animations.play('flip');
 
     return false;
   }, this);
@@ -224,6 +225,7 @@ Gameplay.prototype.update = function() {
     if (pBox.toggled === true) { return; }
 
     toggleSwitch.toggleCallback(toggleSwitch.color);
+    toggleSwitch.animations.play('flip');
 
     pBox.toggled = true;
 
@@ -320,10 +322,10 @@ Gameplay.prototype.toggleSwitchTiles = function (color) {
     this.map.forEach(function (tile) {
 
       if (tile instanceof Phaser.Tile) {
-        if (tile.index === 4 + (1)) {
+        if (tile.index === 6 + (1)) {
           this.map.putTile(0 + (1), tile.x, tile.y, this.foreground);
         } else if (tile.index === 0 + (1)) {
-          this.map.putTile(4 + (1), tile.x, tile.y, this.foreground);
+          this.map.putTile(6 + (1), tile.x, tile.y, this.foreground);
         }
       }
 

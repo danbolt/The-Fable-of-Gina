@@ -28,7 +28,9 @@ var ToggleSwitch = function(game, x, y, color, toggleCallback) {
 
   this.game.physics.arcade.enable(this);
   this.body.setSize(16, 16);
-  this.anchor.set(0.5, 0.5)
+  this.anchor.set(0.5, 0.5);
+
+  this.animations.add('flip', color === 'red' ? [1,2,1,2,1,2] : [7,3,7,3,7,3], 5, false);
 
   this.toggleCallback = toggleCallback;
   this.color = color;
