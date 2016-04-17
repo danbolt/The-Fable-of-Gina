@@ -1,8 +1,10 @@
-var Player = function(game, x, y, map, foreground) {
+var Player = function(game, x, y, map, foreground, putPoofCallback) {
   Phaser.Sprite.call(this, game, x, y, 'blocks', 63);
   this.game.physics.arcade.enable(this);
   this.body.setSize(12, 10);
   this.anchor.set(0.5, 1);
+
+  this.putPoof = putPoofCallback;
 
   this.map = map;
   this.foreground = foreground;
@@ -184,19 +186,19 @@ Player.prototype.update = function () {
       switch (this.facing) {
         case Constants.Directions.East:
           this.punchBox.frame = 51;
-          var hitTile = this.map.getTile(~~((this.right + 4) / Constants.TileSize), ~~((this.y - 6) / Constants.TileSize), this.foreground);
+          var hitTile = this.map.getTile(~~((this.right + 8) / Constants.TileSize), ~~((this.y - 6) / Constants.TileSize), this.foreground);
           break;
         case Constants.Directions.West:
           this.punchBox.frame = 54;
-          var hitTile = this.map.getTile(~~((this.left - 4) / Constants.TileSize), ~~((this.y - 6) / Constants.TileSize), this.foreground);
+          var hitTile = this.map.getTile(~~((this.left - 8) / Constants.TileSize), ~~((this.y - 6) / Constants.TileSize), this.foreground);
           break;
         case Constants.Directions.South:
           this.punchBox.frame = 52;
-          var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.bottom + 4) / Constants.TileSize), this.foreground);
+          var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.bottom + 8) / Constants.TileSize), this.foreground);
           break;
         case Constants.Directions.North:
           this.punchBox.frame = 49;
-          var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.top + 4) / Constants.TileSize), this.foreground);
+          var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.top + 8) / Constants.TileSize), this.foreground);
           break;
       }
       if (hitTile !== null) {
@@ -205,6 +207,22 @@ Player.prototype.update = function () {
         // break breakable tiles
         if (Constants.BreakableTiles.indexOf(tileIndex) !== -1) {
           this.map.removeTile(hitTile.x, hitTile.y, this.foreground);
+
+          switch (this.facing) {
+            case Constants.Directions.East:
+              this.putPoof((this.right + 8), this.y - 8);
+              break;
+            case Constants.Directions.West:
+              this.putPoof((this.left - 8), this.y - 8);
+              break;
+            case Constants.Directions.South:
+              this.putPoof((this.x), this.bottom + 8);
+              break;
+            case Constants.Directions.North:
+              this.putPoof((this.x), this.top - 8);
+              break;
+          } 
+          this.putPoof(this.punchBox.worldTransform.x, this.punchBox.worldTransform.y);
         }
       }
 

@@ -113,12 +113,25 @@ Gameplay.prototype.create = function() {
     newWalker.kill();
   };
 
+  var that = this;
+  var putPoofCallback = function(x, y) {
+    var newPoof = that.poofPool.getFirstDead();
+      if (newPoof !== null) {
+        newPoof.revive();
+        newPoof.x = x - 8;
+        newPoof.y = y - 8;
+        newPoof.animations.play('poof');
+
+        that.game.world.bringToTop(that.poofPool);
+      }
+  };
+
   this.map.objects.environment.forEach(function (envObject) {
     if (envObject.name === 'spike') {
       var newSpikes = this.game.add.existing(new Spikes(this.game, envObject.x, envObject.y));
       this.hostiles.push(newSpikes);
     } else if (envObject.name === 'player') {
-      this.player = this.game.add.existing(new Player(this.game, envObject.x, envObject.y, this.map, this.foreground));
+      this.player = this.game.add.existing(new Player(this.game, envObject.x, envObject.y, this.map, this.foreground, putPoofCallback));
       player = this.player;
     } else if (envObject.name === 'red_switch') {
       var newSwitch = this.game.add.existing(new ToggleSwitch(this.game, envObject.x, envObject.y, 'red', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
