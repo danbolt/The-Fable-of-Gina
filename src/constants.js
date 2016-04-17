@@ -30,5 +30,11 @@ var Constants = {
   // indicies of tiles that can be broken by the hammer
   BreakableTiles: [
     5
-  ]
+  ],
+
+  LockColors: {
+    red: 1,
+    blue: 7,
+    green: 2,
+  }
 };

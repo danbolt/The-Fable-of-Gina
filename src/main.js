@@ -1,15 +1,10 @@
-var ToggleSwitch = function(game, x, y, color, toggleCallback) {
-  Phaser.Sprite.call(this, game, x + 8, y + 8, 'blocks', color === 'red' ? 1 : 7);
-
-  this.game.physics.arcade.enable(this);
-  this.body.setSize(16, 16);
-  this.anchor.set(0.5, 0.5)
-
-  this.toggleCallback = toggleCallback;
-  this.color = color;
+Globals = {
+  HasKeys: {
+    red: false,
+    blue: false,
+    green: false
+  }
 };
-ToggleSwitch.prototype = Object.create(Phaser.Sprite.prototype);
-ToggleSwitch.prototype.constructor = ToggleSwitch;
 
 // State 
 var Preload = function () {
@@ -73,6 +68,8 @@ Gameplay.prototype.create = function() {
   this.hostiles = [];
   this.enemies = [];
   this.toggleSwitches = [];
+  this.locks = [];
+  this.keys = [];
 
   this.walkEnemyPool = this.game.add.group();
   for (var i = 0; i < 7; i++) {
@@ -94,6 +91,12 @@ Gameplay.prototype.create = function() {
     } else if (envObject.name === 'blue_switch') {
       var newSwitch = this.game.add.existing(new ToggleSwitch(this.game, envObject.x, envObject.y, 'blue', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
       this.toggleSwitches.push(newSwitch);
+    } else if (envObject.name === 'lock') {
+      var newLock = this.game.add.existing(new Lock(this.game, envObject.x, envObject.y, envObject.properties.color));
+      this.locks.push(newLock);
+    } else if (envObject.name === 'key') {
+      var newKey = this.game.add.existing(new Key(this.game, envObject.x, envObject.y, envObject.properties.color));
+      this.keys.push(newKey);
     }
   }, this);
   //this.enemies.push(this.game.add.existing(new WalkEnemy(this.game, 48, 148)));
@@ -115,6 +118,18 @@ Gameplay.prototype.update = function() {
   // solid-object collisions
   this.game.physics.arcade.collide(this.enemies, this.foreground);
   this.game.physics.arcade.collide(this.player, this.foreground);
+  this.game.physics.arcade.collide(this.player, this.locks, function () {}, function (player, lock) {
+    if (Globals.HasKeys[lock.color] === true) {
+      lock.kill();
+    }
+  }, this);
+
+  // get key logic
+  this.game.physics.arcade.overlap(this.player, this.keys, function (player, key) {
+    key.kill();
+
+    Globals.HasKeys[key.color] = true;
+  }, undefined, this);
 
   // player/foe collision detection
   this.game.physics.arcade.overlap(this.player, this.hostiles, function () { }, function (player, enemy) {
