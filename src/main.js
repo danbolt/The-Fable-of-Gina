@@ -54,6 +54,43 @@ Load.prototype.create = function () {
   this.game.state.start('TitleScreen');
 };
 
+var GameOverScreen = function () {
+  //
+};
+GameOverScreen.prototype.create = function () {
+  this.game.stage.backgroundColor = 0x000000;
+
+  var logoText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2, 'font', 'game over!\n\nyou didn\'t get the gold square\n\n:(\n\nmaybe next time', 8);
+  logoText.align = 'center';
+  logoText.anchor.set(0.5);
+
+  this.game.time.events.add(5000, function () {
+    this.game.state.start('TitleScreen');
+  }, this);
+};
+
+var YouWinScreen = function () {
+  //
+};
+YouWinScreen.prototype.create = function () {
+  this.game.stage.backgroundColor = 0x000000;
+
+  var logoText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 3, 'font', 'you totally got the gold square!\n\nnice once!\n\npress enter to play again', 8);
+  logoText.align = 'center';
+  logoText.anchor.set(0.5);
+
+  var playerWin = this.game.add.sprite(this.game.width / 2, this.game.height * 0.666, 'blocks', 24);
+  var winGraphic = playerWin.addChild(this.game.add.sprite(0, -16, 'blocks', 97));
+  winGraphic.animations.add('flicker', [97, 98], 10, true);
+  winGraphic.animations.play('flicker');
+
+  var startGameKey = this.game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
+  startGameKey.onUp.add(function () {
+    this.game.input.keyboard.removeKey(startGameKey);
+    this.game.state.start('Gameplay');
+  }, this);
+};
+
 var TitleScreen = function () {
   //
 };
@@ -200,7 +237,7 @@ Gameplay.prototype.update = function() {
     this.player.viewSprite.animations.play('weak_pose');
 
     this.game.time.events.add(3000, function () {
-      this.game.state.start('TitleScreen');
+      this.game.state.start('YouWinScreen');
     }, this);
   }, undefined, this);
 
@@ -294,7 +331,7 @@ Gameplay.prototype.update = function() {
       this.player.viewSprite.animations.play(this.player.currentForm + '_die');
 
       this.game.time.events.add(3000, function () {
-        this.game.state.start('TitleScreen');
+        this.game.state.start('GameOverScreen');
       }, this);
       
     }
@@ -479,6 +516,8 @@ var main = function() {
   game.state.add('Preload', Preload, false);
   game.state.add('Load', Load, false);
   game.state.add('TitleScreen', TitleScreen, false);
+  game.state.add('GameOverScreen', GameOverScreen, false);
+  game.state.add('YouWinScreen', YouWinScreen, false);
   game.state.add('Gameplay', Gameplay, false);
 
   game.state.start('Preload');
