@@ -16,7 +16,7 @@ var Lock = function(game, x, y, color) {
   this.body.setSize(16, 16);
   this.anchor.set(0.5);
   this.body.immovable = true;
-  this.frame = Constants.LockColors[color];
+  this.frame = Constants.LockColors[color] + 3;
 
   this.color = color;
 };

@@ -18,10 +18,10 @@ var Player = function(game, x, y, map, foreground) {
   this.shooting = false;
   this.dying = false;
 
-  //this.currentForm = 'weak';
+  this.currentForm = 'weak';
   //this.currentForm = 'bird';
   //this.currentForm = 'rock';
-  this.currentForm = 'tank';
+  //this.currentForm = 'tank';
 
   this.viewSprite = this.game.add.sprite(0, 0, 'blocks', 14);
   this.viewSprite.anchor.set(0.5, 1);

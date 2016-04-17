@@ -34,8 +34,8 @@ var Constants = {
   ],
 
   LockColors: {
-    red: 1,
-    blue: 7,
-    green: 2,
+    red: 78,
+    blue: 77,
+    green: 76,
   }
 };
