@@ -155,6 +155,9 @@ Gameplay.prototype.update = function() {
   this.game.physics.arcade.overlap(this.player, this.keys, function (player, key) {
     key.kill();
 
+    var newKeyGraphic = this.game.add.sprite((Constants.LockColors[key.color] - 76) * 20, 0, 'blocks', Constants.LockColors[key.color]);
+    this.gui.keys.addChild(newKeyGraphic);
+
     Globals.HasKeys[key.color] = true;
   }, undefined, this);
 
@@ -305,6 +308,15 @@ Gameplay.prototype.setUpGUI = function() {
   }
   this.gui.hearts = hearts;
   this.gui.addChild(hearts);
+
+  var guiTestText = this.game.add.bitmapText(128, 4, 'font', 'keys', 8);
+  this.gui.addChild(guiTestText);
+  this.areaText = guiTestText;
+  var keys = this.game.add.group();
+  keys.x = 128;
+  keys.y = 16;
+  this.gui.keys = keys;
+  this.gui.addChild(keys);
 
   this.game.world.bringToTop(this.gui);
 };
