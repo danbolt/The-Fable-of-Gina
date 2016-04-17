@@ -75,6 +75,8 @@ Gameplay.prototype.create = function() {
     if (envObject.name === 'spike') {
       var newSpikes = this.game.add.existing(new Spikes(this.game, envObject.x, envObject.y));
       this.enemies.push(newSpikes);
+    } else if (envObject.name === 'player') {
+      this.player = this.game.add.existing(new Player(this.game, envObject.x, envObject.y, this.map, this.foreground));
     }
   }, this);
   this.enemies.push(this.game.add.existing(new WalkEnemy(this.game, 48, 148)));
@@ -82,8 +84,13 @@ Gameplay.prototype.create = function() {
   this.toggleSwitches = [];
   var testToggleSwitch = this.game.add.existing(new ToggleSwitch(this.game, 96, 96, 'blue', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
   this.toggleSwitches.push(testToggleSwitch);
+  
+  this.game.world.bringToTop(this.player);
 
-  this.player = this.game.add.existing(new Player(this.game, 128, 96, this.map, this.foreground));
+  var calculatedCameraX = ~~(this.player.x / (Constants.RoomWidthInTiles * Constants.TileSize)) * (Constants.RoomWidthInTiles * Constants.TileSize);
+  var calculatedCameraY = ~~(this.player.y / (Constants.RoomHeightInTiles * Constants.TileSize)) * (Constants.RoomHeightInTiles * Constants.TileSize);
+  this.camera.x = calculatedCameraX;
+  this.camera.y = calculatedCameraY;  
 
   this.setUpGUI();
 };
