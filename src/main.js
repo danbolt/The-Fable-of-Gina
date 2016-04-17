@@ -3,7 +3,10 @@ Globals = {
     red: false,
     blue: false,
     green: false
-  }
+  },
+
+  PlayerHealth: 0,
+  PlayerMaxHealth: 4,
 };
 
 // State 
@@ -28,9 +31,15 @@ Preload.prototype.preload = function() {
   this.game.input.keyboard.addKeyCapture(Phaser.Keyboard.SPACEBAR);
 
   this.game.input.gamepad.start();
+
+  this.game.load.bitmapFont('font', 'asset/font/font.png', 'asset/font/font.json');
 };
 Preload.prototype.create = function () {
-  this.game.state.start('Load');
+  var loadingText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2, 'font', 'loading!', 8);
+  loadingText.align = 'center';
+  loadingText.anchor.set(0.5);
+
+  this.game.state.start('Load', false);
 };
 
 var Load = function () {
@@ -40,11 +49,27 @@ Load.prototype.preload = function() {
   this.game.load.spritesheet('blocks', 'asset/img/blocks.png', 16, 16);
 
   this.game.load.tilemap('overworld', 'asset/map/overworld.json', undefined, Phaser.Tilemap.TILED_JSON);
-
-  this.game.load.bitmapFont('font', 'asset/font/font.png', 'asset/font/font.json');
 };
 Load.prototype.create = function () {
-  this.game.state.start('Gameplay');
+  this.game.state.start('TitleScreen');
+};
+
+var TitleScreen = function () {
+  //
+};
+TitleScreen.prototype.create = function () {
+  this.game.stage.backgroundColor = 0x000000;
+
+  var logoText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2, 'font', 'the fable of gina\n\npress enter to start', 8);
+  logoText.align = 'center';
+  logoText.anchor.set(0.5);
+
+  var startGameKey = this.game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
+  startGameKey.onUp.add(function () {
+    this.game.input.keyboard.removeKey(startGameKey);
+    this.game.state.start('Gameplay');
+  }, this);
+  
 };
 
 var Gameplay = function () {
@@ -99,10 +124,6 @@ Gameplay.prototype.create = function() {
       this.keys.push(newKey);
     }
   }, this);
-  //this.enemies.push(this.game.add.existing(new WalkEnemy(this.game, 48, 148)));
-  
-  //var testToggleSwitch = this.game.add.existing(new ToggleSwitch(this.game, 96, 96, 'blue', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
-  //this.toggleSwitches.push(testToggleSwitch);
   
   this.game.world.bringToTop(this.player);
   this.game.world.bringToTop(this.player.punchBox);
@@ -110,7 +131,12 @@ Gameplay.prototype.create = function() {
   var calculatedCameraX = ~~(this.player.x / (Constants.RoomWidthInTiles * Constants.TileSize)) * (Constants.RoomWidthInTiles * Constants.TileSize);
   var calculatedCameraY = ~~(this.player.y / (Constants.RoomHeightInTiles * Constants.TileSize)) * (Constants.RoomHeightInTiles * Constants.TileSize);
   this.camera.x = calculatedCameraX;
-  this.camera.y = calculatedCameraY;  
+  this.camera.y = calculatedCameraY;
+
+  Globals.HasKeys.red = false;
+  Globals.HasKeys.blue = false;
+  Globals.HasKeys.green = false;
+  Globals.PlayerHealth = Globals.PlayerMaxHealth;
 
   this.setUpGUI();
 };
@@ -135,20 +161,31 @@ Gameplay.prototype.update = function() {
   this.game.physics.arcade.overlap(this.player, this.hostiles, function () { }, function (player, enemy) {
     if (player.invincible === true || player.jumping === true) { return false; }
 
-    player.knockBackDirection = new Phaser.Point(enemy.x - player.x, enemy.y - player.y);
-    player.knockBackDirection.normalize();
-    player.knockBackDirection.multiply(Constants.KnockBackSpeed, Constants.KnockBackSpeed);
-    this.game.time.events.add(401, function () {
-      player.knockBackDirection = null;
+    Globals.PlayerHealth--;
+    this.gui.hearts.children.forEach(function (h) {
+      h.renderable = this.gui.hearts.children.indexOf(h) <= (Globals.PlayerHealth - 1);
     }, this);
 
-    player.invincible = true;
-    var flickerPlayer = this.game.time.events.loop(100, function () {
-      player.viewSprite.tint = (player.viewSprite.tint === 0xFFFFFF ? 0xFF0000 : 0xFFFFFF);
-    }, this);
-    this.game.time.events.add(Constants.FlickerTime, function () { player.viewSprite.tint = 0xFFFFFF; player.invincible = false; this.game.time.events.remove(flickerPlayer); }, this);
+    if (Globals.PlayerHealth > 0) {
+      player.knockBackDirection = new Phaser.Point(enemy.x - player.x, enemy.y - player.y);
+      player.knockBackDirection.normalize();
+      player.knockBackDirection.multiply(Constants.KnockBackSpeed, Constants.KnockBackSpeed);
+      this.game.time.events.add(401, function () {
+        player.knockBackDirection = null;
+      }, this);
 
-    return false;
+      player.invincible = true;
+      var flickerPlayer = this.game.time.events.loop(100, function () {
+        player.viewSprite.tint = (player.viewSprite.tint === 0xFFFFFF ? 0xFF0000 : 0xFFFFFF);
+      }, this);
+      this.game.time.events.add(Constants.FlickerTime, function () { player.viewSprite.tint = 0xFFFFFF; player.invincible = false; this.game.time.events.remove(flickerPlayer); }, this);
+
+      return false;
+    } else if (Globals.PlayerHealth === 0) {
+      // player has died! boo
+
+      this.game.state.start('TitleScreen');
+    }
   }, this);
 
   // bullet/enemy collision detection
@@ -246,9 +283,19 @@ Gameplay.prototype.setUpGUI = function() {
   guiBlack.height = Constants.TileSize * 3;
   this.gui.addChild(guiBlack);
 
-  var guiTestText = this.game.add.bitmapText(16, 16, 'font', 'overworld i', 8);
+  var guiTestText = this.game.add.bitmapText(16, 4, 'font', 'life', 8);
   this.gui.addChild(guiTestText);
   this.areaText = guiTestText;
+
+  var hearts = this.game.add.group();
+  hearts.x = 16;
+  hearts.y = 16;
+  for (var i = 0; i < Globals.PlayerMaxHealth; i++) {
+    var heartContainer = this.game.add.sprite(24 * i, 0, 'blocks', 1);
+    hearts.addChild(heartContainer);
+  }
+  this.gui.hearts = hearts;
+  this.gui.addChild(hearts);
 
   this.game.world.bringToTop(this.gui);
 };
@@ -285,6 +332,7 @@ var main = function() {
 
   game.state.add('Preload', Preload, false);
   game.state.add('Load', Load, false);
+  game.state.add('TitleScreen', TitleScreen, false);
   game.state.add('Gameplay', Gameplay, false);
 
   game.state.start('Preload');
