@@ -26,6 +26,7 @@ var Constants = {
     West: 2,
     East: 0,
   },
+  DirectionStrings: ['east', 'south', 'west', 'north'],
 
   // indicies of tiles that can be broken by the hammer
   BreakableTiles: [

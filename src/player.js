@@ -53,6 +53,10 @@ var Player = function(game, x, y, map, foreground) {
   this.viewSprite.animations.add('rock_run_west', [45, 46], 4, true);
   this.viewSprite.animations.add('rock_idle_north', [41], 1);
   this.viewSprite.animations.add('rock_run_north', [41, 42], 4, true);
+  this.viewSprite.animations.add('rock_punch_south', [48], 1);
+  this.viewSprite.animations.add('rock_punch_east', [50], 1);
+  this.viewSprite.animations.add('rock_punch_west', [55], 1);
+  this.viewSprite.animations.add('rock_punch_north', [53], 1);
   this.viewSprite.animations.add('rock_die', [39, 43, 45, 41, 39, 43, 45, 41, 47], 9, false);
 
   this.viewSprite.animations.add('bird_idle_south', [28], 1);
@@ -120,7 +124,7 @@ Player.prototype.update = function () {
       } else {
         this.body.velocity.set(0);
 
-        if (this.dying === false) {
+        if (this.dying === false && this.punching === false) {
           switch (this.facing) {
             case Constants.Directions.East:
               this.viewSprite.animations.play(this.currentForm + '_idle_east');
@@ -159,20 +163,25 @@ Player.prototype.update = function () {
       this.punchBox.revive();
       this.punchBox.x = this.facing === Constants.Directions.West ? -16 : (this.facing === Constants.Directions.East ? 16 : 0);
       this.punchBox.y = this.facing === Constants.Directions.South ? 8 : (this.facing === Constants.Directions.North ? -24 : -8);
+      this.viewSprite.animations.play('rock_punch_' + Constants.DirectionStrings[this.facing]);
 
       // if the player has punched a particular tile, perform necessary logic
       var hitTile = null;
       switch (this.facing) {
         case Constants.Directions.East:
+          this.punchBox.frame = 51;
           var hitTile = this.map.getTile(~~((this.right + 4) / Constants.TileSize), ~~((this.y - 6) / Constants.TileSize), this.foreground);
           break;
         case Constants.Directions.West:
+          this.punchBox.frame = 54;
           var hitTile = this.map.getTile(~~((this.left - 4) / Constants.TileSize), ~~((this.y - 6) / Constants.TileSize), this.foreground);
           break;
         case Constants.Directions.South:
+          this.punchBox.frame = 52;
           var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.bottom + 4) / Constants.TileSize), this.foreground);
           break;
         case Constants.Directions.North:
+          this.punchBox.frame = 49;
           var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.top + 4) / Constants.TileSize), this.foreground);
           break;
       }
