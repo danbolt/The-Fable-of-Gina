@@ -11,7 +11,7 @@ var Constants = {
   KnockBackSpeed: -150,
   FlickerTime: 700,
 
-  JumpTime: 300, // duration of jump
+  JumpTime: 450, // duration of jump
   PunchTime: 300, // duration of punch
   ShootTime: 50, // duration of time to "stall the player" when shooting
   BulletVelocity: 200,

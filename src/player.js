@@ -157,7 +157,7 @@ Player.prototype.update = function () {
       }
     }
 
-    if (this.jumping === false && this.game.input.keyboard.isDown(Phaser.Keyboard.Q)) {
+    if (this.currentForm === 'bird' && this.jumping === false && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
       this.jumping = true;
       this.frame = 60;
 
@@ -170,7 +170,7 @@ Player.prototype.update = function () {
       jumpTween.start();
     }
 
-    if (this.punching === false && this.game.input.keyboard.isDown(Phaser.Keyboard.W)) {
+    if (this.currentForm === 'rock' && this.punching === false && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
       this.punching = true;
       this.body.velocity.set(0);
 
@@ -216,7 +216,7 @@ Player.prototype.update = function () {
       }, this);
     }
 
-    if (this.shooting === false && this.canShoot === true && this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
+    if (this.currentForm === 'tank' && this.shooting === false && this.canShoot === true && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
       var newBullet = this.bullets.getFirstDead();
       if (newBullet !== null) {
         this.shooting = true;

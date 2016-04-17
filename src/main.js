@@ -119,6 +119,7 @@ Gameplay.prototype.create = function() {
       this.hostiles.push(newSpikes);
     } else if (envObject.name === 'player') {
       this.player = this.game.add.existing(new Player(this.game, envObject.x, envObject.y, this.map, this.foreground));
+      player = this.player;
     } else if (envObject.name === 'red_switch') {
       var newSwitch = this.game.add.existing(new ToggleSwitch(this.game, envObject.x, envObject.y, 'red', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
       this.toggleSwitches.push(newSwitch);
