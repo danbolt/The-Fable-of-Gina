@@ -96,6 +96,15 @@ Gameplay.prototype.create = function() {
   this.locks = [];
   this.keys = [];
 
+  this.poofPool = this.game.add.group();
+  for (var i = 0; i < 7; i++) {
+    var newPoof = this.game.add.sprite(0, 0, 'blocks', 0);
+    newPoof.animations.add('poof', [93, 94, 95, 96], 7, false).killOnComplete = true;
+    newPoof.kill();
+
+    this.poofPool.addChild(newPoof);
+  }
+
   this.walkEnemyPool = this.game.add.group();
   for (var i = 0; i < 7; i++) {
     var newWalker = new WalkEnemy(this.game, 0, 0);
@@ -202,14 +211,36 @@ Gameplay.prototype.update = function() {
   this.game.physics.arcade.overlap(this.player.bullets, this.enemies, function () {}, function (enemy, bullet) {
     bullet.kill();
 
-    if (!(enemy.invincible)) { enemy.kill(); }
+    if (!(enemy.invincible)) {
+      enemy.kill();
+
+      var newPoof = this.poofPool.getFirstDead();
+      if (newPoof !== null) {
+        newPoof.revive();
+        newPoof.x = enemy.x - 8;
+        newPoof.y = enemy.y - 8;
+        newPoof.animations.play('poof');
+      }
+    }
 
     return false;
   }, this);
 
   // punch/enemy collision detection
   this.game.physics.arcade.overlap(this.player.punchBox, this.enemies, function () {}, function (pBox, enemy) {
-    if (!(enemy.invincible)) { enemy.kill(); }
+    if (!(enemy.invincible)) {
+      enemy.kill();
+
+      var newPoof = this.poofPool.getFirstDead();
+      if (newPoof !== null) {
+        newPoof.revive();
+        newPoof.x = enemy.x - 8;
+        newPoof.y = enemy.y - 8;
+        newPoof.animations.play('poof');
+
+        this.game.world.bringToTop(this.poofPool);
+      }
+    }
 
     return false;
   }, this);
