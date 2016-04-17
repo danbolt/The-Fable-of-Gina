@@ -1,5 +1,5 @@
 var Player = function(game, x, y, map, foreground) {
-  Phaser.Sprite.call(this, game, x, y, 'blocks', 15);
+  Phaser.Sprite.call(this, game, x, y, 'blocks', 60);
   this.game.physics.arcade.enable(this);
   this.body.setSize(12, 10);
   this.anchor.set(0.5, 1);
@@ -16,6 +16,7 @@ var Player = function(game, x, y, map, foreground) {
   this.jumping = false;
   this.punching = false;
   this.shooting = false;
+  this.dying = false;
 
   this.viewSprite = this.game.add.sprite(0, 0, 'blocks', 14);
   this.viewSprite.anchor.set(0.5, 1);
@@ -28,6 +29,19 @@ var Player = function(game, x, y, map, foreground) {
   this.punchBox.body.setSize(14, 14);
   this.addChild(this.punchBox);
   this.punchBox.kill();
+
+  this.viewSprite.animations.add('weak_idle_south', [16], 1);
+  this.viewSprite.animations.add('weak_run_south', [16, 17], 5, true);
+  this.viewSprite.animations.add('weak_idle_east', [18], 1); 
+  this.viewSprite.animations.add('weak_run_east', [18, 19], 5, true);
+  this.viewSprite.animations.add('weak_idle_west', [20], 1);
+  this.viewSprite.animations.add('weak_run_west', [20, 21], 5, true);
+  this.viewSprite.animations.add('weak_idle_north', [22], 1);
+  this.viewSprite.animations.add('weak_run_north', [22, 23], 5, true);
+  this.viewSprite.animations.add('weak_pose', [24], 5, true);
+  this.viewSprite.animations.add('weak_die', [16, 18, 20, 22, 16, 18, 20, 22, 25], 9, false);
+
+  this.viewSprite.animations.play('weak_idle_south');
 
   this.canShoot = true;
   this.bullets = this.game.add.group();
@@ -56,23 +70,48 @@ Player.prototype.update = function () {
         this.body.velocity.y = 0;
 
         this.facing = Constants.Directions.East;
+
+        this.viewSprite.animations.play('weak_run_east');
       } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
         this.body.velocity.x = -Constants.MoveSpeed;
         this.body.velocity.y = 0;
 
         this.facing = Constants.Directions.West;
+
+        this.viewSprite.animations.play('weak_run_west');
       } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
         this.body.velocity.x = 0;
         this.body.velocity.y = Constants.MoveSpeed;
 
         this.facing = Constants.Directions.South;
+
+        this.viewSprite.animations.play('weak_run_south');
       } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
         this.body.velocity.x = 0;
         this.body.velocity.y = -Constants.MoveSpeed;
 
         this.facing = Constants.Directions.North;
+
+        this.viewSprite.animations.play('weak_run_north');
       } else {
         this.body.velocity.set(0);
+
+        if (this.dying === false) {
+          switch (this.facing) {
+            case Constants.Directions.East:
+              this.viewSprite.animations.play('weak_idle_east');
+              break;
+            case Constants.Directions.South:
+              this.viewSprite.animations.play('weak_idle_south');
+              break;
+            case Constants.Directions.West:
+              this.viewSprite.animations.play('weak_idle_west');
+              break;
+            case Constants.Directions.North:
+              this.viewSprite.animations.play('weak_idle_north');
+              break;
+          }
+        }
       }
     }
 

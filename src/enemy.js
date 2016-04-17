@@ -14,6 +14,9 @@ var WalkEnemy = function(game, x, y) {
 
   this.events.onRevived.add(this.startWalkLoop, this);
   this.events.onKilled.add(this.stopWalkLoop, this);
+
+  this.animations.add('dance', [34, 35], 7, true);
+  this.animations.play('dance');
 };
 WalkEnemy.prototype = Object.create(Phaser.Sprite.prototype);
 WalkEnemy.prototype.constructor = WalkEnemy;

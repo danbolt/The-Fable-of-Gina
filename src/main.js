@@ -183,8 +183,14 @@ Gameplay.prototype.update = function() {
       return false;
     } else if (Globals.PlayerHealth === 0) {
       // player has died! boo
+      this.player.dying = true;
+      this.player.disableMovement = true;
+      this.player.viewSprite.animations.play('weak_die');
 
-      this.game.state.start('TitleScreen');
+      this.game.time.events.add(3000, function () {
+        this.game.state.start('TitleScreen');
+      }, this);
+      
     }
   }, this);
 
