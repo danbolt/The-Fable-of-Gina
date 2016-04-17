@@ -49,8 +49,13 @@ Load.prototype.preload = function() {
   this.game.load.spritesheet('blocks', 'asset/img/blocks.png', 16, 16);
 
   this.game.load.tilemap('overworld', 'asset/map/overworld.json', undefined, Phaser.Tilemap.TILED_JSON);
+
+    this.game.load.audio('background_melody', 'asset/bgm/theme.mp3');
 };
 Load.prototype.create = function () {
+  this.game.bgmMelody = this.game.add.audio('background_melody', 0.8, true);
+  this.game.bgmMelody.play();
+
   this.game.state.start('TitleScreen');
 };
 
@@ -97,9 +102,13 @@ var TitleScreen = function () {
 TitleScreen.prototype.create = function () {
   this.game.stage.backgroundColor = 0x000000;
 
-  var logoText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2, 'font', 'the fable of gina\n\npress enter to start', 8);
+  var logoText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2, 'font', 'the fable of gina\n\n\n\n\n( use arrows to move )\n\n( space for your powers )\n\n\npress enter to start', 8);
   logoText.align = 'center';
   logoText.anchor.set(0.5);
+
+  var copyrightText = this.game.add.bitmapText(this.game.width - 4, this.game.height - 4, 'font', 'Game by Daniel Savage (ld35)', 8);
+  copyrightText.anchor.setTo(1);
+  copyrightText.align = 'right';
 
   var startGameKey = this.game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
   startGameKey.onUp.add(function () {
