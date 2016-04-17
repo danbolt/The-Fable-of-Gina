@@ -10,6 +10,18 @@ var Key = function(game, x, y, color) {
 Key.prototype = Object.create(Phaser.Sprite.prototype);
 Key.prototype.constructor = Key;
 
+var WinObject = function(game, x, y) {
+  Phaser.Sprite.call(this, game, x + 8, y + 8, 'blocks', 10);
+  this.game.physics.arcade.enable(this);
+  this.body.setSize(16, 16);
+  this.anchor.set(0.5);
+
+  this.animations.add('flicker', [97, 98], 10, true);
+  this.animations.play('flicker');
+};
+WinObject.prototype = Object.create(Phaser.Sprite.prototype);
+WinObject.prototype.constructor = WinObject;
+
 var Lock = function(game, x, y, color) {
   Phaser.Sprite.call(this, game, x + 8, y + 8, 'blocks', 10);
   this.game.physics.arcade.enable(this);

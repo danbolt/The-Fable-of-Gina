@@ -131,6 +131,9 @@ Gameplay.prototype.create = function() {
     } else if (envObject.name === 'key') {
       var newKey = this.game.add.existing(new Key(this.game, envObject.x, envObject.y, envObject.properties.color));
       this.keys.push(newKey);
+    } else if (envObject.name === 'win') {
+      var newGoal = this.game.add.existing(new WinObject(this.game, envObject.x, envObject.y));
+      this.goal = newGoal;
     }
   }, this);
   
@@ -169,6 +172,23 @@ Gameplay.prototype.update = function() {
       lock.kill();
     }
   }, this);
+
+  // win game logic
+  this.game.physics.arcade.overlap(this.player, this.goal, function (player, goal) {
+    goal.kill();
+
+    var claimIcon = this.game.add.sprite(this.player.x, this.player.y - 24, 'blocks', 0);
+    claimIcon.animations.add('flicker', [97, 98], 10, true);
+    claimIcon.animations.play('flicker');
+    claimIcon.anchor.set(0.5);
+
+    this.player.disableMovement = true;
+    this.player.viewSprite.animations.play('weak_pose');
+
+    this.game.time.events.add(3000, function () {
+      this.game.state.start('TitleScreen');
+    }, this);
+  }, undefined, this);
 
   // get key logic
   this.game.physics.arcade.overlap(this.player, this.keys, function (player, key) {

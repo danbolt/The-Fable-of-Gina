@@ -39,8 +39,8 @@
                  "type":"",
                  "visible":true,
                  "width":16,
-                 "x":144,
-                 "y":992
+                 "x":1088,
+                 "y":976
                 }, 
                 {
                  "height":16,
@@ -1301,6 +1301,21 @@
                  "width":16,
                  "x":1312,
                  "y":368
+                }, 
+                {
+                 "height":16,
+                 "id":186,
+                 "name":"win",
+                 "properties":
+                    {
+
+                    },
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":16,
+                 "x":1760,
+                 "y":80
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -2152,12 +2167,12 @@
          "name":"room boundaries",
          "opacity":0.239999994635582,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":120,
          "x":0,
          "y":0
         }],
- "nextobjectid":186,
+ "nextobjectid":188,
  "orientation":"orthogonal",
  "properties":
     {
