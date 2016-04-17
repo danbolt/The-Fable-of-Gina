@@ -14,7 +14,7 @@ var Constants = {
   JumpTime: 300, // duration of jump
   PunchTime: 300, // duration of punch
   ShootTime: 50, // duration of time to "stall the player" when shooting
-  BulletVelocity: 120,
+  BulletVelocity: 200,
   TimeBetweenBullets: 400, // prevent 'spamming' the bullets
 
   WalkerEnemySpeed: 70,

@@ -20,7 +20,8 @@ var Player = function(game, x, y, map, foreground) {
 
   //this.currentForm = 'weak';
   //this.currentForm = 'bird';
-  this.currentForm = 'rock';
+  //this.currentForm = 'rock';
+  this.currentForm = 'tank';
 
   this.viewSprite = this.game.add.sprite(0, 0, 'blocks', 14);
   this.viewSprite.anchor.set(0.5, 1);
@@ -45,14 +46,24 @@ var Player = function(game, x, y, map, foreground) {
   this.viewSprite.animations.add('weak_pose', [24], 5, true);
   this.viewSprite.animations.add('weak_die', [16, 18, 20, 22, 16, 18, 20, 22, 25], 9, false);
 
+  this.viewSprite.animations.add('tank_idle_south', [64], 1);
+  this.viewSprite.animations.add('tank_run_south', [64, 65], 5, true);
+  this.viewSprite.animations.add('tank_idle_east', [66], 1); 
+  this.viewSprite.animations.add('tank_run_east', [66, 67], 5, true);
+  this.viewSprite.animations.add('tank_idle_west', [70], 1);
+  this.viewSprite.animations.add('tank_run_west', [70, 71], 5, true);
+  this.viewSprite.animations.add('tank_idle_north', [68], 1);
+  this.viewSprite.animations.add('tank_run_north', [68, 69], 5, true);
+  this.viewSprite.animations.add('tank_die', [64, 66, 70, 68, 64, 66, 70, 68, 72], 9, false);
+
   this.viewSprite.animations.add('rock_idle_south', [39], 1);
-  this.viewSprite.animations.add('rock_run_south', [39, 40], 4, true);
+  this.viewSprite.animations.add('rock_run_south', [39, 40], 5, true);
   this.viewSprite.animations.add('rock_idle_east', [43], 1); 
-  this.viewSprite.animations.add('rock_run_east', [43, 44], 4, true);
+  this.viewSprite.animations.add('rock_run_east', [43, 44], 5, true);
   this.viewSprite.animations.add('rock_idle_west', [45], 1);
-  this.viewSprite.animations.add('rock_run_west', [45, 46], 4, true);
+  this.viewSprite.animations.add('rock_run_west', [45, 46], 5, true);
   this.viewSprite.animations.add('rock_idle_north', [41], 1);
-  this.viewSprite.animations.add('rock_run_north', [41, 42], 4, true);
+  this.viewSprite.animations.add('rock_run_north', [41, 42], 5, true);
   this.viewSprite.animations.add('rock_punch_south', [48], 1);
   this.viewSprite.animations.add('rock_punch_east', [50], 1);
   this.viewSprite.animations.add('rock_punch_west', [55], 1);
@@ -69,7 +80,7 @@ var Player = function(game, x, y, map, foreground) {
   this.viewSprite.animations.add('bird_run_west', [36, 37], 5, true);
   this.viewSprite.animations.add('bird_die', [28, 29, 32, 33, 36, 37, 36, 37, 38], 9, false);
 
-  this.viewSprite.animations.play('weak_idle_south');
+  this.viewSprite.animations.play(this.currentForm + '_idle_south');
 
   this.canShoot = true;
   this.bullets = this.game.add.group();
@@ -79,6 +90,9 @@ var Player = function(game, x, y, map, foreground) {
     newBullet.anchor.set(0.5);
     newBullet.width = 10;
     newBullet.height = 10;
+
+    newBullet.animations.add('flicker', [73, 74], 12, true);
+    newBullet.animations.play('flicker');
 
     this.bullets.addChild(newBullet);
     this.bullets.addToHash(newBullet);
@@ -211,7 +225,7 @@ Player.prototype.update = function () {
         newBullet.revive();
 
         newBullet.x = this.x + (this.facing === (Constants.Directions.West ? -16 : (this.facing === Constants.Directions.East ? 16 : 0)));
-        newBullet.y = this.y + (this.facing === (Constants.Directions.South ? 8 : (this.facing === Constants.Directions.North ? -24 : -8)));
+        newBullet.y = this.y + (this.facing === (Constants.Directions.South ? 10 : (this.facing === Constants.Directions.North ? -32 : -32))) - 10;
         newBullet.body.velocity.x = this.facing === Constants.Directions.West ? -Constants.BulletVelocity : (this.facing === Constants.Directions.East ? Constants.BulletVelocity : 0);
         newBullet.body.velocity.y = this.facing === Constants.Directions.South ? Constants.BulletVelocity : (this.facing === Constants.Directions.North ? -Constants.BulletVelocity : 0);
 

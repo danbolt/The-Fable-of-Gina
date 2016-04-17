@@ -126,6 +126,7 @@ Gameplay.prototype.create = function() {
   }, this);
   
   this.game.world.bringToTop(this.player);
+  this.player.bullets.forEach(function (b) { this.game.world.bringToTop(b); }, this);
   this.game.world.bringToTop(this.player.punchBox);
 
   var calculatedCameraX = ~~(this.player.x / (Constants.RoomWidthInTiles * Constants.TileSize)) * (Constants.RoomWidthInTiles * Constants.TileSize);
