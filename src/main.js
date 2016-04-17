@@ -70,22 +70,37 @@ Gameplay.prototype.create = function() {
   this.cameraBounds = new Phaser.Rectangle(0, 0, this.game.camera.width, this.game.camera.height - (Constants.TileSize * 3));
   this.game.camera.bounds = null;
 
+  this.walkEnemyPool = this.game.add.group();
+  for (var i = 0; i < 7; i++) {
+    var newWalker = new WalkEnemy(this.game, 0, 0);
+    this.walkEnemyPool.addChild(newWalker);
+    newWalker.kill();
+  };
+
   this.enemies = [];
+  this.toggleSwitches = [];
+
   this.map.objects.environment.forEach(function (envObject) {
     if (envObject.name === 'spike') {
       var newSpikes = this.game.add.existing(new Spikes(this.game, envObject.x, envObject.y));
       this.enemies.push(newSpikes);
     } else if (envObject.name === 'player') {
       this.player = this.game.add.existing(new Player(this.game, envObject.x, envObject.y, this.map, this.foreground));
+    } else if (envObject.name === 'red_switch') {
+      var newSwitch = this.game.add.existing(new ToggleSwitch(this.game, envObject.x, envObject.y, 'red', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
+      this.toggleSwitches.push(newSwitch);
+    } else if (envObject.name === 'blue_switch') {
+      var newSwitch = this.game.add.existing(new ToggleSwitch(this.game, envObject.x, envObject.y, 'blue', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
+      this.toggleSwitches.push(newSwitch);
     }
   }, this);
-  this.enemies.push(this.game.add.existing(new WalkEnemy(this.game, 48, 148)));
-
-  this.toggleSwitches = [];
-  var testToggleSwitch = this.game.add.existing(new ToggleSwitch(this.game, 96, 96, 'blue', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
-  this.toggleSwitches.push(testToggleSwitch);
+  //this.enemies.push(this.game.add.existing(new WalkEnemy(this.game, 48, 148)));
+  
+  //var testToggleSwitch = this.game.add.existing(new ToggleSwitch(this.game, 96, 96, 'blue', (function () { var that = this; return (function (color) { that.toggleSwitchTiles.call(that, color); }); }).call(this)));
+  //this.toggleSwitches.push(testToggleSwitch);
   
   this.game.world.bringToTop(this.player);
+  this.game.world.bringToTop(this.player.punchBox);
 
   var calculatedCameraX = ~~(this.player.x / (Constants.RoomWidthInTiles * Constants.TileSize)) * (Constants.RoomWidthInTiles * Constants.TileSize);
   var calculatedCameraY = ~~(this.player.y / (Constants.RoomHeightInTiles * Constants.TileSize)) * (Constants.RoomHeightInTiles * Constants.TileSize);
@@ -144,6 +159,17 @@ Gameplay.prototype.update = function() {
     return false;
   }, this);
 
+  // punch/toggleswitch collision detection
+  this.game.physics.arcade.overlap(this.player.punchBox, this.toggleSwitches, function () {}, function (pBox, toggleSwitch) {
+    if (pBox.toggled === true) { return; }
+
+    toggleSwitch.toggleCallback(toggleSwitch.color);
+
+    pBox.toggled = true;
+
+    return false;
+  }, this);
+
   // camera scrolling
   this.cameraBounds.x = this.game.camera.x;
   this.cameraBounds.y = this.game.camera.y;
@@ -161,6 +187,24 @@ Gameplay.prototype.update = function() {
       this.player.disableMovement = false;
     }, this);
     cameraTween.start();
+
+    // kill the previous room's enemies
+    this.enemies.forEach(function (e) { e.kill(); });
+    this.enemies.length = 0;
+
+    // spawn new enemies for the current room
+    this.map.objects.enemies.forEach(function (enemyData) {
+      if (enemyData.x > calculatedCameraX && enemyData.x < calculatedCameraX + this.cameraBounds.width &&
+          enemyData.y > calculatedCameraY && enemyData.y < calculatedCameraY + this.cameraBounds.height) {
+        if (enemyData.name === 'walker') {
+          var newWalker = this.walkEnemyPool.getFirstDead();
+          newWalker.x = enemyData.x;
+          newWalker.y = enemyData.y;
+          newWalker.revive();
+          this.enemies.push(newWalker);
+        }
+      }
+    }, this);
   } else {
     this.player.bullets.forEach(function (b) {
       if (Phaser.Rectangle.contains(this.cameraBounds, b.x, b.y) === false) {

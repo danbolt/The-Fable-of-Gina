@@ -22,6 +22,7 @@ var Player = function(game, x, y, map, foreground) {
   this.addChild(this.viewSprite);
 
   this.punchBox = this.game.add.sprite(0, 0, 'blocks', 1);
+  this.punchBox.toggled = false;
   this.game.physics.arcade.enable(this.punchBox);
   this.punchBox.anchor.set(0.5);
   this.punchBox.body.setSize(14, 14);
@@ -122,6 +123,7 @@ Player.prototype.update = function () {
       this.game.time.events.add(Constants.PunchTime, function () {
         this.punching = false;
 
+        this.punchBox.toggled = false;
         this.punchBox.kill();
       }, this);
     }
