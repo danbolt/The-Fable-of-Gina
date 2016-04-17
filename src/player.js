@@ -19,7 +19,8 @@ var Player = function(game, x, y, map, foreground) {
   this.dying = false;
 
   //this.currentForm = 'weak';
-  this.currentForm = 'bird';
+  //this.currentForm = 'bird';
+  this.currentForm = 'rock';
 
   this.viewSprite = this.game.add.sprite(0, 0, 'blocks', 14);
   this.viewSprite.anchor.set(0.5, 1);
@@ -43,6 +44,16 @@ var Player = function(game, x, y, map, foreground) {
   this.viewSprite.animations.add('weak_run_north', [22, 23], 5, true);
   this.viewSprite.animations.add('weak_pose', [24], 5, true);
   this.viewSprite.animations.add('weak_die', [16, 18, 20, 22, 16, 18, 20, 22, 25], 9, false);
+
+  this.viewSprite.animations.add('rock_idle_south', [39], 1);
+  this.viewSprite.animations.add('rock_run_south', [39, 40], 4, true);
+  this.viewSprite.animations.add('rock_idle_east', [43], 1); 
+  this.viewSprite.animations.add('rock_run_east', [43, 44], 4, true);
+  this.viewSprite.animations.add('rock_idle_west', [45], 1);
+  this.viewSprite.animations.add('rock_run_west', [45, 46], 4, true);
+  this.viewSprite.animations.add('rock_idle_north', [41], 1);
+  this.viewSprite.animations.add('rock_run_north', [41, 42], 4, true);
+  this.viewSprite.animations.add('rock_die', [39, 43, 45, 41, 39, 43, 45, 41, 47], 9, false);
 
   this.viewSprite.animations.add('bird_idle_south', [28], 1);
   this.viewSprite.animations.add('bird_idle_east', [28], 1);
