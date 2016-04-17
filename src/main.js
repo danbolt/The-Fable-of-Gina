@@ -138,6 +138,16 @@ Gameplay.prototype.create = function() {
   this.player.bullets.forEach(function (b) { this.game.world.bringToTop(b); }, this);
   this.game.world.bringToTop(this.player.punchBox);
 
+  this.sparklePool = this.game.add.group();
+  for (var i = 0; i < 10; i++) {
+    var newPoof = this.game.add.sprite(0, 0, 'blocks', 0);
+    newPoof.animations.add('poof', [14, 15], 10, true);
+    newPoof.animations.play('poof');
+    newPoof.kill();
+
+    this.sparklePool.addChild(newPoof);
+  }
+
   var calculatedCameraX = ~~(this.player.x / (Constants.RoomWidthInTiles * Constants.TileSize)) * (Constants.RoomWidthInTiles * Constants.TileSize);
   var calculatedCameraY = ~~(this.player.y / (Constants.RoomHeightInTiles * Constants.TileSize)) * (Constants.RoomHeightInTiles * Constants.TileSize);
   this.camera.x = calculatedCameraX;
@@ -166,6 +176,55 @@ Gameplay.prototype.update = function() {
 
     var newKeyGraphic = this.game.add.sprite((Constants.LockColors[key.color] - 76) * 20, 0, 'blocks', Constants.LockColors[key.color]);
     this.gui.keys.addChild(newKeyGraphic);
+
+    this.player.disableMovement = true;
+    if (this.player.currentForm === 'weak') {
+      this.player.viewSprite.animations.play('weak_pose');
+    }
+    var claimIcon = this.game.add.sprite(this.player.x, this.player.y - 24, 'blocks', key.frame);
+    claimIcon.anchor.set(0.5);
+    this.game.time.events.add(1500, function () {
+
+      for (var i = 0; i < 10; i++) {
+        var newSparkle = this.sparklePool.getFirstDead();
+        if (newSparkle !== null) {
+          newSparkle.revive();
+          newSparkle.x = player.x;
+          newSparkle.y = player.y;
+          var index = i;
+          var nS = newSparkle;
+          var newPoofTween = this.game.add.tween(newSparkle);
+          newPoofTween.to({ x: [player.x + (70 * Math.cos(i / 10 * Math.PI * 2))  , claimIcon.x], y: [player.y + (70 * Math.sin(i / 10 * Math.PI * 2)) , claimIcon.y] }, 1200);
+
+          if (i === 0) {
+            newPoofTween.onComplete.add(function () {
+              claimIcon.destroy();
+              this.player.disableMovement = false;
+
+              this.sparklePool.forEach(function (s) { s.kill(); });
+
+              switch (this.player.currentForm) {
+                case 'weak':
+                  this.player.currentForm = 'bird';
+                  break;
+                case 'bird':
+                  this.player.currentForm = 'rock';
+                  break;
+                case 'rock':
+                  this.player.currentForm = 'tank';
+                  break;
+                default:
+                  break;
+              }
+              
+              this.player.viewSprite.animations.play(this.player.currentForm + '_idle_south');
+            }, this);
+          }
+
+          newPoofTween.start();
+        }
+      }
+    }, this);
 
     Globals.HasKeys[key.color] = true;
   }, undefined, this);
@@ -321,7 +380,8 @@ Gameplay.prototype.setUpGUI = function() {
   this.gui.fixedToCamera = true;
   this.gui.cameraOffset.y = Constants.RoomHeightInTiles * Constants.TileSize;
 
-  var guiBlack = this.game.add.sprite(0, 0, 'blocks', 15);
+  var guiBlack = this.game.add.sprite(0, 0, 'blocks', 11);
+  guiBlack.tint = 0x000000;
   guiBlack.width = this.game.width;
   guiBlack.height = Constants.TileSize * 3;
   this.gui.addChild(guiBlack);
