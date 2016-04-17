@@ -49,7 +49,10 @@ var Spikes = function(game, x, y) {
   Phaser.Sprite.call(this, game, x + 8, y + 8, 'blocks', 10);
   this.game.physics.arcade.enable(this);
   this.body.setSize(16, 16);
-  this.anchor.set(0.5)
+  this.anchor.set(0.5);
+
+  this.animations.add('do', [10, 9, 12, 9], 10, true);
+  this.animations.play('do');
 
   this.invincible = true;
 };
