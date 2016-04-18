@@ -43,6 +43,11 @@ Preload.prototype.create = function () {
 
   this.game.input.gamepad.start();
 
+    var gamepadText = this.game.add.bitmapText(this.game.width - 4, this.game.height - 4, 'font', 'Gamepad is not detected', 8);
+    gamepadText.anchor.setTo(1);
+    gamepadText.align = 'right';
+    this.gamepadText = gamepadText;
+
   this.game.state.start('Load', false);
 };
 
@@ -93,7 +98,7 @@ var YouWinScreen = function () {
 YouWinScreen.prototype.create = function () {
   this.game.stage.backgroundColor = 0x000000;
 
-  var logoText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 3, 'font', 'you totally got the gold square!\n\nnice once!\n\npress enter to play again', 8);
+  var logoText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 3, 'font', 'you totally got the gold square!\n\nnice once!\n\npress enter/start to play again', 8);
   logoText.align = 'center';
   logoText.anchor.set(0.5);
 
@@ -107,6 +112,14 @@ YouWinScreen.prototype.create = function () {
     this.game.input.keyboard.removeKey(startGameKey);
     this.game.state.start('TitleScreen');
   }, this);
+
+  this.game.input.gamepad.onDownCallback = function (buttonCode) {
+    if (buttonCode === Phaser.Gamepad.XBOX360_START) {
+      this.game.state.start('TitleScreen');
+      this.game.input.gamepad.onDownCallback = null;
+      this.game.input.keyboard.removeKey(startGameKey);
+    }
+  };
 };
 
 var TitleScreen = function () {
@@ -126,12 +139,35 @@ TitleScreen.prototype.create = function () {
   copyrightText.anchor.setTo(1);
   copyrightText.align = 'right';
 
+  var gamepadText = this.game.add.bitmapText(this.game.width - 4, this.game.height - 4 - 16, 'font', 'Gamepad is not detected', 8);
+  gamepadText.anchor.setTo(1);
+  gamepadText.align = 'right';
+  this.gamepadText = gamepadText;
+
   var startGameKey = this.game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
   startGameKey.onUp.add(function () {
     this.game.input.keyboard.removeKey(startGameKey);
     this.game.state.start('Gameplay');
   }, this);
+
+  this.game.input.gamepad.onDownCallback = function (buttonCode) {
+      if (buttonCode === Phaser.Gamepad.XBOX360_START) {
+        this.game.state.start('Gameplay');
+        this.game.input.gamepad.onDownCallback = null;
+        this.game.input.keyboard.removeKey(startGameKey);
+      }
+    };
   
+};
+TitleScreen.prototype.update = function () {
+  if (this.game.input.gamepad.supported && this.game.input.gamepad.active && this.game.input.gamepad.pad1.connected)
+    {
+        this.gamepadText.text = 'Gamepad is detected! Press start!';
+    }
+    else
+    {
+        this.gamepadText.text = 'Gamepad is not detected';
+    }
 };
 
 var Gameplay = function () {
