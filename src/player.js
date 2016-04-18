@@ -202,7 +202,7 @@ Player.prototype.update = function () {
           break;
         case Constants.Directions.North:
           this.punchBox.frame = 49;
-          var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.top + 8) / Constants.TileSize), this.foreground);
+          var hitTile = this.map.getTile(~~((this.x) / Constants.TileSize), ~~((this.top - 8) / Constants.TileSize), this.foreground);
           break;
       }
       if (hitTile !== null) {

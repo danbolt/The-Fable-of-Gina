@@ -275,7 +275,7 @@ Gameplay.prototype.update = function() {
     var newKeyGraphic = this.game.add.sprite((Constants.LockColors[key.color] - 76) * 20, 0, 'blocks', Constants.LockColors[key.color]);
     this.gui.keys.addChild(newKeyGraphic);
     
-    newPoof.animations.play('poof');
+    SoundBank['switch_blue'].play();
 
     this.player.disableMovement = true;
     if (this.player.currentForm === 'weak') {
