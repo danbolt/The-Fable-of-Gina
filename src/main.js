@@ -49,6 +49,7 @@ var Load = function () {
 };
 Load.prototype.preload = function() {
   this.game.load.spritesheet('blocks', 'asset/img/blocks.png', 16, 16);
+  this.game.load.image('logo', 'asset/img/logo.png');
 
   this.game.load.tilemap('overworld', 'asset/map/overworld.json', undefined, Phaser.Tilemap.TILED_JSON);
 
@@ -112,7 +113,10 @@ var TitleScreen = function () {
 TitleScreen.prototype.create = function () {
   this.game.stage.backgroundColor = 0x000000;
 
-  var logoText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 2, 'font', 'the fable of gina\n\n\n\n\n( use arrows to move )\n\n( space for your powers )\n\n\npress enter to start', 8);
+  var gameLogo = this.game.add.sprite(this.game.width / 2 , this.game.height / 3, 'logo');
+  gameLogo.anchor.set(0.5);
+
+  var logoText = this.game.add.bitmapText(this.game.width / 2, this.game.height / 3 * 2, 'font', '( use arrows to move )\n\n( space for your powers )\n\n\npress enter to start', 8);
   logoText.align = 'center';
   logoText.anchor.set(0.5);
 
@@ -270,6 +274,8 @@ Gameplay.prototype.update = function() {
 
     var newKeyGraphic = this.game.add.sprite((Constants.LockColors[key.color] - 76) * 20, 0, 'blocks', Constants.LockColors[key.color]);
     this.gui.keys.addChild(newKeyGraphic);
+    
+    newPoof.animations.play('poof');
 
     this.player.disableMovement = true;
     if (this.player.currentForm === 'weak') {
