@@ -41,6 +41,8 @@ Preload.prototype.create = function () {
   loadingText.align = 'center';
   loadingText.anchor.set(0.5);
 
+  this.game.input.gamepad.start();
+
   this.game.state.start('Load', false);
 };
 

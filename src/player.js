@@ -15,6 +15,8 @@ var Player = function(game, x, y, map, foreground, putPoofCallback) {
   this.invincible = false;
   this.knockBackDirection = null;
 
+  this.gamepad = this.game.input.gamepad.pad1;
+
   this.jumping = false;
   this.punching = false;
   this.shooting = false;
@@ -109,28 +111,28 @@ Player.prototype.update = function () {
   if (this.disableMovement === false && this.knockBackDirection === null && this.dying === false) {
     // don't move while punching
     if (this.punching === false && this.shooting === false) {
-      if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+      if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) || this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) > 0.3) {
         this.body.velocity.x = Constants.MoveSpeed;
         this.body.velocity.y = 0;
 
         this.facing = Constants.Directions.East;
 
         this.viewSprite.animations.play(this.currentForm + '_run_east');
-      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) || this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) < -0.3) {
         this.body.velocity.x = -Constants.MoveSpeed;
         this.body.velocity.y = 0;
 
         this.facing = Constants.Directions.West;
 
         this.viewSprite.animations.play(this.currentForm + '_run_west');
-      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN) || this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) > 0.3) {
         this.body.velocity.x = 0;
         this.body.velocity.y = Constants.MoveSpeed;
 
         this.facing = Constants.Directions.South;
 
         this.viewSprite.animations.play(this.currentForm + '_run_south');
-      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+      } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP) || this.gamepad.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || this.gamepad.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) < -0.3) {
         this.body.velocity.x = 0;
         this.body.velocity.y = -Constants.MoveSpeed;
 
@@ -159,7 +161,9 @@ Player.prototype.update = function () {
       }
     }
 
-    if (this.currentForm === 'bird' && this.jumping === false && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+    var mainButtonDown = (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.gamepad.pad1.isDown(Phaser.Gamepad.BUTTON_1) || this.game.input.gamepad.pad1.isDown(Phaser.Gamepad.BUTTON_2) || this.game.input.gamepad.pad1.isDown(Phaser.Gamepad.BUTTON_3) || this.game.input.gamepad.pad1.isDown(Phaser.Gamepad.BUTTON_4)|| this.game.input.gamepad.pad1.isDown(Phaser.Gamepad.BUTTON_0));
+
+    if (this.currentForm === 'bird' && this.jumping === false && mainButtonDown) {
       this.jumping = true;
       this.frame = 60;
 
@@ -174,7 +178,7 @@ Player.prototype.update = function () {
       jumpTween.start();
     }
 
-    if (this.currentForm === 'rock' && this.punching === false && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+    if (this.currentForm === 'rock' && this.punching === false && mainButtonDown) {
       this.punching = true;
       this.body.velocity.set(0);
 
@@ -240,7 +244,7 @@ Player.prototype.update = function () {
       }, this);
     }
 
-    if (this.currentForm === 'tank' && this.shooting === false && this.canShoot === true && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+    if (this.currentForm === 'tank' && this.shooting === false && this.canShoot === true && mainButtonDown) {
       var newBullet = this.bullets.getFirstDead();
       if (newBullet !== null) {
         this.shooting = true;
