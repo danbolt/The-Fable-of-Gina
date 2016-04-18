@@ -39,3 +39,16 @@ var Constants = {
     green: 76,
   }
 };
+
+var soundEffectsToLoad = ['breakobstacle',
+                          'die',
+                          'enemydie',
+                          'getkey',
+                          'getsquare',
+                          'hurt',
+                          'jump',
+                          'shoot1',
+                          'shoot2',
+                          'shoot3',
+                          'switch_blue',
+                          'switch_red'];

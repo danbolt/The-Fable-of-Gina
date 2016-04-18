@@ -9,6 +9,8 @@ Globals = {
   PlayerMaxHealth: 4,
 };
 
+var SoundBank = {};
+
 // State 
 var Preload = function () {
   //
@@ -50,11 +52,19 @@ Load.prototype.preload = function() {
 
   this.game.load.tilemap('overworld', 'asset/map/overworld.json', undefined, Phaser.Tilemap.TILED_JSON);
 
-    this.game.load.audio('background_melody', 'asset/bgm/theme.mp3');
+  this.game.load.audio('background_melody', 'asset/bgm/theme.mp3');
+
+  soundEffectsToLoad.forEach(function (sname) {
+    this.game.load.audio(sname, 'asset/sfx/' + sname + '.ogg');
+  }, this);
 };
 Load.prototype.create = function () {
   this.game.bgmMelody = this.game.add.audio('background_melody', 0.8, true);
   this.game.bgmMelody.play();
+
+  soundEffectsToLoad.forEach(function (sname) {
+    SoundBank[sname] = this.game.add.audio(sname, 0.8, false);
+  }, this);
 
   this.game.state.start('TitleScreen');
 };
@@ -92,7 +102,7 @@ YouWinScreen.prototype.create = function () {
   var startGameKey = this.game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
   startGameKey.onUp.add(function () {
     this.game.input.keyboard.removeKey(startGameKey);
-    this.game.state.start('Gameplay');
+    this.game.state.start('TitleScreen');
   }, this);
 };
 
@@ -230,6 +240,8 @@ Gameplay.prototype.update = function() {
   this.game.physics.arcade.collide(this.player, this.locks, function () {}, function (player, lock) {
     if (Globals.HasKeys[lock.color] === true) {
       lock.kill();
+
+      SoundBank['hurt'].play();
     }
   }, this);
 
@@ -241,6 +253,8 @@ Gameplay.prototype.update = function() {
     claimIcon.animations.add('flicker', [97, 98], 10, true);
     claimIcon.animations.play('flicker');
     claimIcon.anchor.set(0.5);
+
+    SoundBank['getsquare'].play();
 
     this.player.disableMovement = true;
     this.player.viewSprite.animations.play('weak_pose');
@@ -265,6 +279,8 @@ Gameplay.prototype.update = function() {
     claimIcon.anchor.set(0.5);
     this.game.time.events.add(1500, function () {
 
+    SoundBank['getkey'].play();
+
       for (var i = 0; i < 10; i++) {
         var newSparkle = this.sparklePool.getFirstDead();
         if (newSparkle !== null) {
@@ -280,6 +296,8 @@ Gameplay.prototype.update = function() {
             newPoofTween.onComplete.add(function () {
               claimIcon.destroy();
               this.player.disableMovement = false;
+
+              SoundBank['jump'].play();
 
               this.sparklePool.forEach(function (s) { s.kill(); });
 
@@ -313,12 +331,15 @@ Gameplay.prototype.update = function() {
   this.game.physics.arcade.overlap(this.player, this.hostiles, function () { }, function (player, enemy) {
     if (player.invincible === true || player.jumping === true) { return false; }
 
+    
     Globals.PlayerHealth--;
     this.gui.hearts.children.forEach(function (h) {
       h.frame = this.gui.hearts.children.indexOf(h) <= (Globals.PlayerHealth - 1) ? 99 : 100;
     }, this);
 
     if (Globals.PlayerHealth > 0) {
+      SoundBank['hurt'].play();
+
       player.knockBackDirection = new Phaser.Point(enemy.x - player.x, enemy.y - player.y);
       player.knockBackDirection.normalize();
       player.knockBackDirection.multiply(Constants.KnockBackSpeed, Constants.KnockBackSpeed);
@@ -339,6 +360,8 @@ Gameplay.prototype.update = function() {
       this.player.disableMovement = true;
       this.player.viewSprite.animations.play(this.player.currentForm + '_die');
 
+      SoundBank['die'].play();
+
       this.game.time.events.add(3000, function () {
         this.game.state.start('GameOverScreen');
       }, this);
@@ -352,6 +375,8 @@ Gameplay.prototype.update = function() {
 
     if (!(enemy.invincible)) {
       enemy.kill();
+
+      SoundBank['enemydie'].play();
 
       var newPoof = this.poofPool.getFirstDead();
       if (newPoof !== null) {
@@ -369,6 +394,8 @@ Gameplay.prototype.update = function() {
   this.game.physics.arcade.overlap(this.player.punchBox, this.enemies, function () {}, function (pBox, enemy) {
     if (!(enemy.invincible)) {
       enemy.kill();
+
+      SoundBank['enemydie'].play();
 
       var newPoof = this.poofPool.getFirstDead();
       if (newPoof !== null) {
@@ -493,6 +520,7 @@ Gameplay.prototype.setUpGUI = function() {
 };
 Gameplay.prototype.toggleSwitchTiles = function (color) {
   if (color === 'red') {
+    SoundBank['switch_red'].play();
     this.map.forEach(function (tile) {
       if (tile instanceof Phaser.Tile) {
         if (tile.index === 8 + (1)) {
@@ -503,8 +531,8 @@ Gameplay.prototype.toggleSwitchTiles = function (color) {
       }
     }, this, 0, 0, this.map.width, this.map.height, this.foreground);
   } else if (color === 'blue') {
+    SoundBank['switch_blue'].play();
     this.map.forEach(function (tile) {
-
       if (tile instanceof Phaser.Tile) {
         if (tile.index === 6 + (1)) {
           this.map.putTile(0 + (1), tile.x, tile.y, this.foreground);

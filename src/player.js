@@ -163,6 +163,8 @@ Player.prototype.update = function () {
       this.jumping = true;
       this.frame = 60;
 
+      SoundBank['jump'].play();
+
       var jumpTween = this.game.add.tween(this.viewSprite);
       jumpTween.to({y: [-24, 0]}, Constants.JumpTime, Phaser.Easing.Linear.None);
       jumpTween.onComplete.add(function () {
@@ -175,6 +177,8 @@ Player.prototype.update = function () {
     if (this.currentForm === 'rock' && this.punching === false && this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
       this.punching = true;
       this.body.velocity.set(0);
+
+      SoundBank['hurt'].play();
 
       this.punchBox.revive();
       this.punchBox.x = this.facing === Constants.Directions.West ? -16 : (this.facing === Constants.Directions.East ? 16 : 0);
@@ -207,6 +211,8 @@ Player.prototype.update = function () {
         // break breakable tiles
         if (Constants.BreakableTiles.indexOf(tileIndex) !== -1) {
           this.map.removeTile(hitTile.x, hitTile.y, this.foreground);
+
+          SoundBank['enemydie'].play();
 
           switch (this.facing) {
             case Constants.Directions.East:
@@ -241,6 +247,8 @@ Player.prototype.update = function () {
         this.body.velocity.set(0);
 
         newBullet.revive();
+
+        SoundBank[Math.random() * 10 < 5 ? 'shoot1' : 'shoot2'].play();
 
         newBullet.x = this.x + (this.facing === (Constants.Directions.West ? -16 : (this.facing === Constants.Directions.East ? 16 : 0)));
         newBullet.y = this.y + (this.facing === (Constants.Directions.South ? 10 : (this.facing === Constants.Directions.North ? -32 : -32))) - 10;
